@@ -1,1 +1,1 @@
-An IRC sever
+An IRC server
