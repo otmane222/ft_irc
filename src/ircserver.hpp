@@ -11,5 +11,6 @@ class ircserver
 		/* data */
 	public:
 		ircserver(/* args */);
+		void	start(int serverSocket);
 		~ircserver();
 };
