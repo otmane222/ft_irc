@@ -15,4 +15,3 @@ class client
 		int getSocket();
 		~client();
 };
-`
