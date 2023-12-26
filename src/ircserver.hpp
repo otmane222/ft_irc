@@ -3,6 +3,11 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <map>
+#include <set>
+#include <string>
+#include <stdlib.h>
+#include "client.hpp"
 
 
 class ircserver
@@ -11,5 +16,6 @@ class ircserver
 		/* data */
 	public:
 		ircserver(/* args */);
+		void	start(int serverSocket);
 		~ircserver();
 };

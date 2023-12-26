@@ -3,7 +3,8 @@ NAME = ircserv
 SRC = 	main.cpp \
 		src/ircserver.cpp \
 		src/command.cpp \
-		src/socket.cpp \
+		src/socketManager.cpp \
+		src/client.cpp \
 
 OBJS = $(SRC:.cpp=.o)
 
@@ -13,7 +14,7 @@ CC = c++
 
 RM = rm -rf
 
-HEADERS = src/ircserver.hpp src/command.hpp src/socket.hpp
+HEADERS = src/ircserver.hpp src/command.hpp src/socketManager.hpp src/client.hpp
 
 all: $(NAME) $(OBJS) $(HEADERS)
 
