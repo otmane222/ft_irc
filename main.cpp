@@ -19,7 +19,7 @@ int main(int ac, char **av)
 	socketManager	socketManagerr(port);
 	ircserver		server;
 
-	server.start(socketManagerr.getSocket());
+	server.start(socketManagerr.getSocket(), password);
 
 	return 0;
 }

@@ -2,6 +2,7 @@
 #include "socketManager.hpp"
 
 
+
 ircserver::ircserver(/* args */)
 {
 }
@@ -10,35 +11,37 @@ ircserver::~ircserver()
 {
 }
 
-void	ircserver::start(int _serverSocket)
+void	ircserver::start(int _serverSocket, std::string password)
 {
-	std::map<std::string, client>			clients;
+	std::map<int, client>					clients;
 	std::map<std::string, std::set<int> >	channels;
 	int										_clientSocket;
 	struct sockaddr_in						clientaddr;
 	socklen_t								len = sizeof(clientaddr);
-	fd_set									currentfds, tmpfds;
 	std::vector<int>						fds;
-	int										maxfd;
+	std::vector<pollfd>						pollfds;
+	pollfd Pollfd;
+
+	Pollfd.fd = _serverSocket;
+	Pollfd.events = POLLIN;
+	Pollfd.revents = 0;
 
 	fds.push_back(_serverSocket);
-	FD_ZERO(&currentfds);
-	FD_SET(_serverSocket, &currentfds);
-	maxfd = _serverSocket;
+
+	pollfds.push_back(Pollfd);
 	while (true)
 	{
-		tmpfds = currentfds;
-		if (select(maxfd + 1, &tmpfds, NULL, NULL, NULL) == -1)
+		if (poll(pollfds.data(), pollfds.size(), -1) == -1)
 		{
 			perror("select");
-			exit (1);
+			exit (1); // throw exception ;
 		}
 
-		for (int i = _serverSocket; i <= maxfd; i++)
+		for (size_t i = 0; i <= pollfds.size(); i++) // EAGAIN is an erno 
 		{
-			if (FD_ISSET(i, &tmpfds))
+			if (pollfds[i].revents & POLLIN)
 			{
-				if (i == _serverSocket)
+				if (i == 0)
 				{
 					_clientSocket = accept(_serverSocket, reinterpret_cast<struct sockaddr*>(&clientaddr), &len);
 					if (_clientSocket == -1)
@@ -48,42 +51,37 @@ void	ircserver::start(int _serverSocket)
 					}
 					else
 					{
-						std::cout << "New Connection Has Been Accepted, Client Socket: "<< _clientSocket << std::endl;
-						FD_SET(_clientSocket, &currentfds);
+						std::cout << "New Connection Has Been Accepted, Client Socket: "<< _clientSocket - 3 << std::endl;
+						Pollfd.fd = _clientSocket;
+						pollfds.push_back(Pollfd);
 
 						fds.push_back(_clientSocket);
+
 						client	a(_clientSocket, fds);
-						std::string	clientname = "client ";
-
-						clientname = std::to_string(_clientSocket - 3);
-						clients[clientname] = a;
-
-						if (_clientSocket > maxfd)
-							maxfd = _clientSocket;
+						clients[_clientSocket] = a;
 					}
 				}
 				else
 				{
-					char	buffer[10000];
-					ssize_t	bufferread = recv(i, buffer, sizeof(buffer) - 1, 0);
+					char	buffer[1024];
+					ssize_t	bufferread = recv(pollfds[i].fd, buffer, sizeof(buffer) - 1, 0); // Recv In A While Until You Find A '\n'
 					if (bufferread <= 0)
 					{
 						if (bufferread == 0)
 							std::cerr << "Connection closed by client" << std::endl;
 						else
 							std::cerr << "Error receving" << std::endl;
-						close(i);
-						FD_CLR(i, &currentfds);
-
-						std::vector<int>::iterator	it = std::find(fds.begin(), fds.end(), i);
-						if(it != fds.end())
-							fds.erase(it);
+						close(pollfds[i].fd);
+						pollfds.erase(pollfds.begin() + i);
+						clients.erase(pollfds[i].fd);
+						fds.erase(fds.begin() + i);
 					}
 					else
 					{
 						buffer[bufferread] = '\0';
 						std:: cout << "Message Received From client " << i << " " << buffer << std::endl;
-						// parse_command();
+						parse_command(buffer, clients, pollfds, fds, i, channels);
+						(void)password;
 					}
 				}
 			}

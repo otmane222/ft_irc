@@ -5,6 +5,8 @@ SRC = 	main.cpp \
 		src/command.cpp \
 		src/socketManager.cpp \
 		src/client.cpp \
+		src/channel.cpp \
+		src/parse.cpp \
 
 OBJS = $(SRC:.cpp=.o)
 
@@ -14,7 +16,7 @@ CC = c++
 
 RM = rm -rf
 
-HEADERS = src/ircserver.hpp src/command.hpp src/socketManager.hpp src/client.hpp
+HEADERS = src/ircserver.hpp src/command.hpp src/socketManager.hpp src/client.hpp src/channel.hpp
 
 all: $(NAME) $(OBJS) $(HEADERS)
 
