@@ -11,3 +11,14 @@ class command
 		virtual	int	execute(void) = 0;
 };
 
+// class join
+// {
+// 	private:
+// 		/* data */
+// 	public:
+// 		join(/* args */);
+// 		virtual	~join();
+
+// 		int	execute(void);
+// };
+
