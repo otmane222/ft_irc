@@ -10,7 +10,7 @@ int main(int ac, char **av)
 		return (1);
 	}
 
-	int			port = std::stoi(av[1]);
+	int			port = std::atoi(av[1]);
 	std::string	password = av[2];
 
 

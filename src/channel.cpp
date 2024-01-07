@@ -60,3 +60,28 @@ bool channel::operator==(const channel& other) const
 {
 	return (this->channelName == other.channelName);
 }
+
+// bool	channel::operator!=(const channel& cl) const
+// {
+// 	return (this->channelName != cl.channelName);
+// }
+
+// bool	channel::operator<(const channel& cl) const
+// {
+// 	return (this->channelName < cl.channelName);
+// }
+
+// bool	channel::operator<=(const channel& cl) const
+// {
+// 	return (this->channelName <= cl.channelName);
+// }
+
+// bool	channel::operator>=(const channel& cl) const
+// {
+// 	return (this->channelName >= cl.channelName);
+// }
+
+// bool	channel::operator>(const channel& cl) const
+// {
+// 	return (this->channelName > cl.channelName);
+// }

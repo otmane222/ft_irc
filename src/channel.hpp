@@ -1,4 +1,5 @@
-#pragma once
+# ifndef CHANNEL_HPP
+# define CHANNEL_HPP
 
 #include <iostream>
 #include <vector>
@@ -33,6 +34,13 @@ class channel
 		int		getSize();
 
 		channel operator = (const channel& other);
-		bool	operator==(const channel& other) const;
+		bool	operator==(const channel& cl) const;
+		// bool	operator!=(const channel& cl) const;
+		// bool	operator<(const channel& cl) const;
+		// bool	operator<=(const channel& cl) const;
+		// bool	operator>=(const channel& cl) const;
+		// bool	operator>(const channel& cl) const;
 		
 };
+
+#endif

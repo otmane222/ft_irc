@@ -10,7 +10,9 @@
 #include <exception>
 #include <poll.h>
 #include "client.hpp"
+#include "channel.hpp"
 
+#define USERLEN 12
 
 class ircserver
 {
