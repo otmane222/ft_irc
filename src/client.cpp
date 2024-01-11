@@ -12,15 +12,11 @@ client::~client()
 	// close(socket);
 }
 
-client::client(int socket,std::vector<int>& clients_socket) : socket(socket) , clients_socket(clients_socket), steps(0)
+client::client(int socket) : socket(socket), steps(0)
 {
-	std::string	usernn	= "client ";
-	nickname        	= "nick";
-	usernn += std::to_string(socket - 3);
-
-	username        = usernn;
-	nickname        = nickname.append(std::to_string(socket - 3));
-	hostname        = "hostname";
+	username        = "";
+	nickname        = "";
+	hostname        = "localhost";
 	stat.password   = false;
 	stat.nickname   = false;
 	stat.username   = false;
@@ -74,9 +70,10 @@ void	client::reply(std::string message) const
 
 void pass(client& cl, std::vector<std::string> cmd, std::string password)
 {
+	std::cout<< "pass" <<std::endl;
 	if (cl.stat.registered)
 		return (cl.reply(ERR_ALREADYREGISTERED(cl.getNickName(), cl.getHostName())));
-	if (cl.stat.nickname || cl.stat.username)
+	if (cl.stat.nickname)
 		return ;
 	if (cmd.size() != 2) 
 		return (cl.stat.password = false, cl.reply(ERR_NEEDMOREPARAMS(cl.getNickName(), cl.getHostName())));
@@ -91,25 +88,31 @@ void nick(client& cl, std::vector<std::string> cmd, std::vector<client> cls)
 	std::cout<< "nick" <<std::endl;
 	if (cl.stat.registered)
 		return (cl.reply(ERR_ALREADYREGISTERED(cl.getNickName(), cl.getHostName())));
-	if (!cl.stat.password)
+	if (!cl.stat.password || cl.stat.username)
 		return ;
-	std::cout<< "nick2" <<std::endl;
-	if (cmd.size() < 2)
+	if (cmd.size() == 1)
 		return (cl.reply(ERR_NONICKNAMEGIVEN(cl.getNickName(), cl.getHostName())));
 	std::vector<client>::iterator it = cls.begin();
 	for (; it != cls.end(); it++)
 	{
-		if ((*it).getNickName() == cmd[1])
+		if ((*it).getNickName() != "" && (*it).getNickName() == cmd[1])
 			return (cl.stat.nickname = false, cl.reply(ERR_NICKNAMEINUSE(cl.getNickName(), cl.getHostName())));
-	}
-	const char* search = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789([]{})'\'|";
+	} 
+	const char* search = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789([]{})\'|";
 	if (std::isdigit(cmd[1][0]))
 		return (cl.stat.nickname = false, cl.reply(ERR_ERRONEUSNICKNAME(cl.getNickName(), cl.getHostName())));
-	for (size_t i = 1; cmd[1][i] != '\0'; i++)
+	size_t i = 0;
+	if (cmd[1][0] == ':')
+		i++;
+	for (; cmd[1][i] != '\0'; i++)
 	{
+		std :: cout << "'" << cmd[1][i] << "'" << std::endl;
 		if (!std::strchr(search, cmd[1][i]))
 			return (cl.stat.nickname = false, cl.reply(ERR_ERRONEUSNICKNAME(cl.getNickName(), cl.getHostName())));
+
 	}
+	if (cl.getNickName() != "")
+		cl.reply(RPL_NICKCHANGE(cl.getNickName(), cmd[1], cl.getHostName()));
 	cl.setNickName(cmd[1]);
 	cl.stat.nickname = true;
 	std::cout << "nickname accepted" << std::endl;
@@ -125,57 +128,79 @@ std::string extractRealname(const std::vector<std::string>& params)
 		if (i != params.size() - 1)
 			realname += " ";
 	}
-
 	// Check if the realname starts with a colon, and remove it
 	if (!realname.empty() && realname[0] == ':')
 		realname = realname.substr(1);
-
-	return realname;
+	return (realname);
 }
+
 void user(client& cl, std::vector<std::string> cmd)
 {
-	if (cmd.size() < 5)
-		return (cl.reply(ERR_NEEDMOREPARAMS(cl.getNickName(), cl.getHostName())));
+	std::cout << "user" << std::endl;
 	if (cl.stat.registered)
 		return (cl.reply(ERR_ALREADYREGISTERED(cl.getNickName(), cl.getHostName())));
-	if (!cl.stat.password)
+	if (cmd.size() < 5)
+		return (cl.reply(ERR_NEEDMOREPARAMS(cl.getNickName(), cl.getHostName())));
+	if (!cl.stat.nickname)
 		return ;
 	if (cmd[2] != "0" || cmd[3] != "*")
 		return ;
+	const char* search = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789([ ]{})\'|";
 	std::string realname = extractRealname(cmd);
 	std::string username = cmd[1];
-	if (username.length() > USERLEN || username.length() < 1)
+	if (username.empty() || username.length() > USERLEN || username.length() < 1)
 		return ;
+	for (size_t i = 1; cmd[1][i] != '\0'; i++)
+	{
+		if (!std::strchr(search, username[i]))
+			return ;
+	}
+	cl.setUserName(username);
+	cl.stat.username = true;
+	cl.stat.registered = true;
+	cl.reply(RPL_WELCOME(cl.getNickName(), cl.getHostName()));
+	std::cout << "username accepted" << std::endl;
 }
 
 void	client::registration(std::string line, std::string password, std::vector<client> cls)
 {
-	if (!line.empty() && line.back() == '\n')
-		line.erase(line.length() - 1);
+	if (line.empty())
+		return ;
+	if (line.back() == '\n')
+	{
+		line.pop_back();
+		if (line.back() == '\r')
+			line.pop_back();
+	}
 	std::vector<std::string> cmd = split(line, ' ');
-	if (cmd.size() < 1)
+	if (cmd.size() == 0)
 	{
 		std :: cout << "empty line" << std::endl;
 		return ;
 	}
-	for (size_t i = 0; i < 3; i++)
+	if (cmd[0] == "PASS")
 	{
-		if (cmd[0] == "PASS")
-		{
-			pass(*this, cmd, password);
-			return ;
-		}
-		if (cmd[0] == "NICK")
-		{
-			nick(*this, cmd, cls);
-			return ;
-		}
-		// if (cmd[0] == "USER")
-		// {
-		// 	user(*this, cmd);
-		// 	return ;
-		// }
+		pass(*this, cmd, password);
+		return ;
 	}
+	if (cmd[0] == "NICK")
+	{
+		nick(*this, cmd, cls);
+		return ;
+	}
+	if (cmd[0] == "USER")
+	{
+		user(*this, cmd);
+		return ;
+	}
+}
+
+void	client::close_connection(std::vector<pollfd>& pollfds, std::map<int, client>& clients, int i)
+{
+	std::cerr << "Connection closed by client" << std::endl;
+	close(socket);
+	pollfds.erase(pollfds.begin() + i);
+	clients.erase(pollfds[i].fd);
 }
 
 client	client::operator = (const client& other)
@@ -196,25 +221,3 @@ bool client::operator==(const client& cl) const
 {
 	return (this->socket == cl.socket);
 }
-
-// bool client::operator!=(const client& cl) const
-// {
-// 	return (this->socket != cl.socket);
-// }
-
-// bool	client::operator<(const client& cl) const
-// {
-// 	return (this->socket < cl.socket);
-// }
-// bool	client::operator<=(const client& cl) const
-// {
-// 	return (this->socket <= cl.socket);
-// }
-// bool	client::operator>=(const client& cl) const
-// {
-// 	return (this->socket >= cl.socket);
-// }
-// bool	client::operator>(const client& cl) const
-// {
-// 	return (this->socket > cl.socket);
-// }

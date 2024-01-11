@@ -13,20 +13,19 @@ socketManager::socketManager(int port)
 
 	/*	This In Case The Port Was Used And Wants To Reuse It  */
 
-	// int yes=1;
-	// //char yes='1'; // Solaris people use this
-
-	// // lose the pesky "Address already in use" error message
-	// if (setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) {
-	// 	perror("setsockopt");
-	// 	exit(1);
-	// } 
+	int yes = 1;
+	if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+	{
+		perror("setsockopt");
+		exit(1);
+	} 
 
 	if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) == -1)
 	{
 		perror("fcntl");
 		exit (1);
 	}
+	
 	serverAddr.sin_port = htons(port);
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);

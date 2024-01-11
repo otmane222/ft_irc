@@ -23,10 +23,10 @@ int main(int ac, char **av)
 	{
 		server.start(socketManagerr.getSocket(), password);
 	}
-	catch(...)
+	catch(std::exception& e)
 	{
 		std	:: cout <<
-					"Error catched"
+					e.what()
 					<<
 		std ::		endl;
 	}

@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
+#include <poll.h>
 // #include "channel.hpp"
 
 class channel;
@@ -33,7 +35,7 @@ class client
 	public:
 		client();
 		~client();
-		client(int socket, std::vector<int>& clients_socket);
+		client(int socket);
 
 		int			getSocket();
 		std::string	getUserName();
@@ -49,16 +51,13 @@ class client
 
 		void	registration(std::string line, std::string password, std::vector<client> cls);
 
+		void	close_connection(std::vector<pollfd>& pollfds, std::map<int, client>& clients, int i);
+
 		t_status					stat;
 		int							steps;
 
 		client	operator = (const client& cl);
 		bool	operator==(const client& cl) const;
-		// bool	operator!=(const client& cl) const;
-		// bool	operator<(const client& cl) const;
-		// bool	operator<=(const client& cl) const;
-		// bool	operator>=(const client& cl) const;
-		// bool	operator>(const client& cl) const;
 };
 
 std::vector<std::string> split(const std::string& input, char delimiter);
