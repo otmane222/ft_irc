@@ -20,15 +20,19 @@ class	Server
 		void		set_passwd(std::string &);
 
 		// commands
-		void		pass(std::string);
-		void		nick(std::string);
-		void		user(std::string);
-		void		privmsg(std::string);
-		void		join(std::string);
-		void		kick(std::string);
-		void		invite(std::string);
-		void		topic(std::string);
-		void		mode(std::string);
+		void		pass(std::string, Client &);
+		void		nick(std::string, Client &);
+		void		user(std::string, Client &);
+		void		privmsg(std::string, Client &);
+		void		join(std::string, Client &);
+		void		kick(std::string, Client &);
+		void		invite(std::string, Client &);
+		void		topic(std::string, Client &);
+		void		mode(std::string, Client &);
+		bool		channel_exists(Channel &) const;
+		bool		channel_exists(const std::string &) const;
+		Channel		&get_channel_by_name(const std::string &) const;
+		bool		client_exists(const std::string &) const;
 
 		void		execute_cmd();
 	private :

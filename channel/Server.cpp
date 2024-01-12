@@ -12,28 +12,28 @@ std::string	Server::get_passwd() const {return _passwd;}
 void	Server::set_port(int port) {_port = port;}
 void	Server::set_passwd(std::string &passwd) {_passwd = passwd;}
 
-void	Server::pass(std::string param)
-{
-	std::stringstream	strstream(param);
-	std::string			pass;
-	getline(strstream, pass, ' ');
+// void	Server::pass(std::string param)
+// {
+// 	std::stringstream	strstream(param);
+// 	std::string			pass;
+// 	getline(strstream, pass, ' ');
 
-}
+// }
 
-void	Server::nick(std::string param)
-{
-	std::stringstream	strstream(param);
-	std::string			nick;
-	getline(strstream, nick, ' ');
+// void	Server::nick(std::string param)
+// {
+// 	std::stringstream	strstream(param);
+// 	std::string			nick;
+// 	getline(strstream, nick, ' ');
 
-}
+// }
 
-void	Server::user(std::string param)
-{
+// void	Server::user(std::string param)
+// {
 	
-}
+// }
 
-void	Server::privmsg(std::string param)
+void	Server::privmsg(std::string param, Client &c)
 {
 	std::stringstream			strstream(param);
 	std::map<std::string, int>	targets;
@@ -57,8 +57,41 @@ void	Server::privmsg(std::string param)
 		if (found!=std::string::npos)
 			msg = msg.substr(0, found);
 	}
+	std::map<std::string, int>::iterator itr = targets.begin();
+	while (itr != targets.end())
+	{
+		if (itr->second == 1) // target is a channel
+		{
+			if (channel_exists(itr->first))
+			{
+				Channel ch = get_channel_by_name(itr->first);
+				if (ch.is_member(c))
+				{
+					// broadcast REP_AWAY
+				}
+				else
+				{
+					// reply with ERR_CANNOTSENDTOCHAN (404)
+				}
+			}
+			else
+			{
+				// reply with ERR_NOSUCHCHANNEL (403)
+			}
+		}else // target is a client
+		{
+			if (client_exists(itr->first))
+			{
+				// reply with REP_AWAY
+			}
+			else
+			{
+				// replyERR_NOSUCHNICK (401) 
+			}
+		}
+	}
 }
-void	Server::join(std::string param)
+void	Server::join(std::string param, Client & c)
 {
 	std::stringstream			strstream(param);
 	std::vector<std::string>	v_channels;

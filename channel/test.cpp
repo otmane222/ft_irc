@@ -9,6 +9,6 @@ int main(int argc, char ** argv)
 	while (!ss.eof())
 	{
 		getline(ss, world, ':');
-		std::cout << world << std::endl;
+		std::cout << "#" <<world << "#" << std::endl;
 	}
 }

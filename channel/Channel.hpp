@@ -6,7 +6,7 @@
 /*   By: obahi <obahi@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 20:51:16 by obahi             #+#    #+#             */
-/*   Updated: 2024/01/09 00:53:33 by obahi            ###   ########.fr       */
+/*   Updated: 2024/01/12 11:17:34 by obahi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,8 +55,9 @@ class	Channel
 		void	remove_member(Client &);
 		void	promote_member(Client &);
 		void	unpromote_member(Client &);
-
 		void	invite_member(Client &);
+
+		bool	is_member(Client &) const;
 	private :
 		std::string					_name;
 		std::string					_passwd;

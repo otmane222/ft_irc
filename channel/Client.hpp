@@ -6,7 +6,7 @@
 class	Client
 {
 	public:
-		Client(int = -1, std::string = "", std::string = "");
+		Client(int = -1, std::string = "", std::string = "", bool = false);
 		~Client();
 
 		// geters
@@ -29,6 +29,7 @@ class	Client
 		std::string 				_nick_name;
 		std::string 				_user_name;
 		std::string					_real_name;
-		std::vector<std::string>	_invites; // posible remove
+		std::string					_hostname;
+		bool						_registred;
 };
 
