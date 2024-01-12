@@ -6,7 +6,7 @@
 /*   By: obahi <obahi@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/08 17:40:56 by obahi             #+#    #+#             */
-/*   Updated: 2024/01/08 18:18:07 by obahi            ###   ########.fr       */
+/*   Updated: 2024/01/11 09:28:22 by obahi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,25 +15,19 @@
 Client::Client(int sock_fd, std::string  nick_name, std::string name):
 _sock_fd(sock_fd), _nick_name(nick_name), _name(name) {}
 
-Client::Client(const Client& rhs)
+Client::~Client()
 {
-	_sock_fd = rhs.get_socket_fd();
-	_nick_name = rhs.get_nick_name();
-	_name = rhs.get_name();
-	_invites = rhs.get_invites();
+	// close(_sock_fd);
 }
 
-Client& Client::operator=(const Client& rhs)
-{
-	if (this != &rhs)
-	{
-		_sock_fd = rhs.get_socket_fd();
-		_nick_name = rhs.get_nick_name();
-		_name = rhs.get_name();
-		_invites = rhs.get_invites();
-	}
-	return (*this);
-}
+int							Client::get_socket_fd() const{return _sock_fd;}
+std::string 				Client::get_nick_name() const{return _nick_name;}
+std::string 				Client::get_user_name() const{return _user_name;}
+std::string 				Client::get_real_name() const{return _real_name;}
+std::vector<std::string>	Client::get_invites() const{return _invites;}
 
-Client::~Client(){}
-
+void	Client::set_socket_fd(int sock_fd) {_sock_fd = sock_fd;}
+void 	Client::set_nick_name(std::string nick_name) {_nick_name = nick_name;}
+void 	Client::set_user_name(std::string name) {_user_name = name;}
+void 	Client::set_real_name(std::string name) {_real_name = name;}
+void	Client::set_invites(std::vector<std::string> & invites) {_invites = invites;}

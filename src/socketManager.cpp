@@ -13,7 +13,7 @@ socketManager::socketManager(int port)
 
 	serverAddr.sin_port = htons(port);
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY );
+	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind(serverSocket, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1)
 	{
