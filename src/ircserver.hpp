@@ -10,7 +10,9 @@
 #include <exception>
 #include <poll.h>
 #include "client.hpp"
+#include "channel.hpp"
 
+#define USERLEN 18
 
 class ircserver
 {
@@ -84,12 +86,3 @@ void	parse_command(std::string line, std::map<int, client>& cl, std::vector<poll
 #define RPL_KICK(kicker, username, host, channel, targetuser, reason) ":" + kicker + "!" + username + "@" + host + " KICK " + channel + " " + targetuser + " :" + reason + "\r\n"
 #define PRIVMSG_FORMAT(senderNick, senderUsername, senderHostname, receiver, message) ":" + senderNick + "!~" + senderUsername + "@" + senderHostname + " PRIVMSG " + receiver + " :" + message + "\r\n"
 #define ERR_UNKNOWNCOMMAND(nick, hostname, command) ":" + hostname + " 421 " + nick + " " + command + " :Unknown command\r\n"
-
-// hostname nickname oldNickname channelname ipaddress topic setter clients mode newlimit flag channelmode
-// inviting invited username clienthostname argument message character kicker targetuser reason senderNick senderUsername senderHostname receiver command
-
-// pass nick privmsg kick invites topic join
-
-// pass  | send ERR_PASSWDMISMATCH in case password isn't correct
-
-// ERR_NEEDMOREPARAMS send when n

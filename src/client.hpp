@@ -1,9 +1,22 @@
-#pragma once
+# ifndef CLIENT_HPP
+# define CLIENT_HPP
 
 #include <iostream>
 #include <vector>
+#include <map>
+#include <poll.h>
+// #include "channel.hpp"
 
 class channel;
+
+
+typedef struct s_status
+{
+	bool	password;
+	bool	nickname;
+	bool	username;
+	bool	registered;
+}	t_status;
 
 class client
 {
@@ -16,11 +29,13 @@ class client
 		std::string					username;
 		std::string					nickname;
 		std::string					hostname;
+		std::string					realname;
+
 
 	public:
 		client();
 		~client();
-		client(int socket, std::vector<int>& clients_socket);
+		client(int socket);
 
 		int			getSocket();
 		std::string	getUserName();
@@ -32,11 +47,19 @@ class client
 		void		setNickName(std::string s);
 		void		setHostName(std::string s);
 
-		void	reply(std::string& message) const;
+		void	reply(std::string message) const;
 
-		bool				valid;
-		int					steps;
+		void	registration(std::string line, std::string password, std::vector<client> cls);
+
+		void	close_connection(std::vector<pollfd>& pollfds, std::map<int, client>& clients, int i);
+
+		t_status					stat;
+		int							steps;
 
 		client	operator = (const client& cl);
 		bool	operator==(const client& cl) const;
 };
+
+std::vector<std::string> split(const std::string& input, char delimiter);
+
+#endif
