@@ -6,6 +6,7 @@
 #include <vector>
 #include <sstream>
 #include <map>
+#include <utility> 
 
 class	Server
 {
@@ -41,4 +42,7 @@ class	Server
 		std::vector<Client>		_clients;
 		std::vector<Channel>	_channels;
 };
+
+
+std::string	get_token(std::string&);
 

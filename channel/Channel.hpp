@@ -6,7 +6,7 @@
 /*   By: obahi <obahi@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 20:51:16 by obahi             #+#    #+#             */
-/*   Updated: 2024/01/12 11:17:34 by obahi            ###   ########.fr       */
+/*   Updated: 2024/01/13 10:22:16 by obahi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,12 +52,15 @@ class	Channel
 		void	disable_mode(mode_t mode);
 		// members methode
 		void	add_member(Client &, std::string);
+		void	add_operator(Client &);
 		void	remove_member(Client &);
+		void	remove_member(std::string &);
 		void	promote_member(Client &);
 		void	unpromote_member(Client &);
 		void	invite_member(Client &);
 
-		bool	is_member(Client &) const;
+		int	is_member(Client &) const; // -1 : not a memeber , 0 : simple user , 1 : operator
+		int	is_member(std::string &) const; // -1 : not a memeber , 0 : simple user , 1 : operator
 	private :
 		std::string					_name;
 		std::string					_passwd;
@@ -69,16 +72,3 @@ class	Channel
 
 		mode_t						_mode;
 };
-
-template <typename T>
-typename std::vector<T>::iterator find(std::vector<T> v, const T& e)
-{
-	std::vector<T>::iterator itr = v.begin();
-	while (itr != v.end())
-	{
-		if (*itr == e)
-			break;
-		itr++;
-	}
-	return (itr);
-}

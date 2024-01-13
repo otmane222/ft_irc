@@ -6,7 +6,7 @@
 /*   By: obahi <obahi@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/07 10:38:16 by obahi             #+#    #+#             */
-/*   Updated: 2024/01/09 00:54:59 by obahi            ###   ########.fr       */
+/*   Updated: 2024/01/13 11:31:17 by obahi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,8 +61,18 @@ void	Channel::disable_mode(mode_t mode) {_mode & (~mode);}
 // 	return true;
 // }
 
+void	Channel::add_operator(Client &c)
+{
+	if (_members.find(c) == _members.end())
+	{
+		//reply with something
+		return;
+	}
+	_members[c] = 1;
+}
 void	Channel::add_member(Client &c, std::string passwd)
 {
+		
 	if (_members.find(c) == _members.end())
 	{
 		//reply with something
@@ -110,4 +120,14 @@ void	Channel::invite_member(Client & c)
 {
 	if (find(_invited.begin(), _invited.end(), c) != _invited.end())
 		_invited.push_back(c);
+	else
+		// ERR_USERONCHANNEL (443)
+}
+
+int	Channel::is_member(Client &c) const
+{
+	std::map<std::string, int>::iterator itr = _members.find(c);
+	if (itr == _members.end())
+		return (-1);
+	return (itr->second);
 }
