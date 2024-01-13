@@ -26,6 +26,7 @@ class ircserver
 
 void	parse_command(std::string line, std::map<int, client>& cl, std::vector<pollfd>&	pollfds, std::vector<int>& fds, int fd, std::map<std::string, std::set<int> >& channels);
 
+#define RPL_PRIVMSG(source, target, message) ":" + source + " PRIVMSG " + target + " :" + message
 #define RPL_WELCOME(nick, hostname) ":" + hostname + " 001 " + nick + " :Welcome " + nick + " to the ft_irc network !\r\n"
 #define RPL_YOURHOST(nick, hostname) ":" + hostname + " 002 " + nick + " :Your host is " + hostname + " running version 1.0 !\r\n"
 #define RPL_CREATED(nick, hostname) ":" + hostname + " 003 " + nick + " :This server was created 2023-9-15 !\r\n"
