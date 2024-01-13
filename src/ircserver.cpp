@@ -114,6 +114,7 @@ void	ircserver::start(int _serverSocket, std::string password)
 					std::string line = recving(pollfds[i].fd, fds);
 					std:: cout << "Message Received From client " << i << " " << line << std::endl;
 					clients[pollfds[i].fd].registration(line, password, cls);
+					// clients[pollfds[i].fd].reply("fajfkafjjafkja");
 					// (void)password;
 				}
 			}
