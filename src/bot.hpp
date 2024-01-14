@@ -2,6 +2,9 @@
 # define BOT_HPP
 # include <string>
 
+# define LOCAL_HOST "127.0.0.1"
+# define READ_SIZE	512 
+
 using namespace::std;
 
 typedef struct	s_bot

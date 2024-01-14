@@ -1,53 +1,62 @@
-NAME				=	bot
+ # NAME ===============================================================
+NAME =		ircbot
+# ====================================================================
 
-DIRECTORY_CHECK		=	src
-DIRECTORY_SOURCE	=	src
-DIRECTORY_OBJECT	=	objects
+# FILES ==============================================================
+FILES =	bot.cpp		\
+# ====================================================================
 
-FILES_CHECK			=	bot.hpp \
-						Utils/Utils.hpp
-FILES_SOURCE		=	bot.cpp \
-						Utils/Utils.cpp \
-						main.cpp
+# HEADER =============================================================
+HEADER = bot.hpp	\
 
-COMPILE				=	c++
-COMPILATION_FLAG	=	 -std=c++98 -pedantic-errors -g 
+# ====================================================================
 
-ARGUMENTS			=	localhost 6667 password
+# FLAGS ==============================================================
+FLAGS =		-Wall -Wextra -Werror -std=c++98 -g
+# ====================================================================
 
-all: $(NAME)
+# COMPIL =============================================================
+CC =		c++
+# ====================================================================
 
-$(DIRECTORY_OBJECT)/%.o: $(DIRECTORY_SOURCE)/%.cpp $(FILES_CHECK:%=$(DIRECTORY_CHECK)/%)
-	@printf "\e[33m"
-	@printf "Compile\t$< -> $@\n"
-	mkdir -p $(dir $@)
-	$(COMPILE) $(COMPILATION_FLAG) -c $< -o $@
+# SUB_DIR_LST ========================================================
+SUB_DIR_LST = bot
+# ====================================================================
 
-$(NAME): $(FILES_SOURCE:%.cpp=$(DIRECTORY_OBJECT)/%.o)
-	@printf "\e[32m"
-	@printf "Build\t$@\n"
-	$(COMPILE) -o $@ $(FILES_SOURCE:%.cpp=$(DIRECTORY_OBJECT)/%.o)
+# OBJS_DIR ===========================================================
+OBJS_DIR =	.objs
+# ====================================================================
 
-run: all
-	@printf "\e[0m"
-	./$(NAME) $(ARGUMENTS)
+# OBJ ================================================================
+OBJ = $(addprefix $(OBJS_DIR)/, $(FILES:.cpp=.o))
+# ====================================================================
 
-clean:
-	@printf "\e[31m"
-	@printf "Remove\t$(DIRECTORY_OBJECT)\n"
-	rm -rf $(DIRECTORY_OBJECT)
+# SUB_DIR ============================================================
+SUB_DIR		=	$(addprefix $(OBJS_DIR)/,$(SUB_DIR_LST))
+# ====================================================================
 
-fclean: clean
-	@printf "Remove\t$(NAME)\n"
-	rm -f $(NAME)
+all:				$(NAME)
 
-re: fclean all
+$(NAME):			$(OBJ) $(FILES)
+					$(CC) $(OBJ) -o $(NAME)
 
-rrun: re run
+$(OBJS_DIR)/%.o:	%.cpp Makefile $(HEADER) $(OBJS_DIR)
+					${CC} ${FLAGS} -c $< -o $@
 
-leaks: all
-	@printf "\e[0m"
-	valgrind make run
+$(OBJS_DIR):
+					mkdir -p $(OBJS_DIR)
+					mkdir -p $(SUB_DIR)
 
-.PHONY: all run clean fclean re rrun leaks
-.SILENT:
+clean :
+					rm -f ${OBJ} ${OBJ_B} $(OBJS_DIR)/*.o
+
+fclean :
+					rm -f ${OBJ} ${OBJ_B} $(OBJS_DIR)/*.o
+					rm -f ${NAME}
+					rm -rf $(OBJS_DIR)
+
+re :				fclean all
+
+.PHONY:				all clean fclean re
+
+# ====================================================================
