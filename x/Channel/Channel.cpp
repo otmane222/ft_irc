@@ -29,48 +29,57 @@ void	Channel::enable_mode(mode_t mode) {_mode |= mode;}
 void	Channel::disable_mode(mode_t mode) {_mode & (~mode);}
 
 
+// members methode
+void	Channel::add_member(Client &c, std::string passwd)
+{
+	if (_members.find(c) != _members.end())
+	{
+		//reply with something
+		std::cout << "member already exists" << std::endl;
+		return;
+	}
+	if (_mode & CH_CLIENT_LIMIT && _nbr_members >= _max_members)
+	{
+		//reply with ERR_CHANNELISFULL (471)
+		std::cout << "channel is full" << std::endl;
+		return;
+	}
+	if (_mode & CH_INVITE_ONLY && find(_invited.begin(), _invited.end(), c) == _invited.end())
+	{
+		//reply with ERR_INVITEONLYCHAN (473)
+		std::cout << "user is not invited" << std::endl;
+		return;
+	}
+	if (_mode & CH_KEY == CH_KEY && passwd != _passwd)
+	{
+		// reply with ERR_BADCHANNELKEY (475)
+		std::cout << "wrong key" << std::endl;
+		return;
+	}
+	_members[c] = 0;
+	std::cout << "memeber added succesfully" << std::endl;
+	//send reply
+}
 
 void	Channel::add_operator(Client &c)
 {
 	if (_members.find(c) == _members.end())
 	{
 		//reply with something
+		std::cout << "member already exists" << std::endl;
 		return;
 	}
 	_members[c] = 1;
-}
-void	Channel::add_member(Client &c, std::string passwd)
-{
-		
-	if (_members.find(c) == _members.end())
-	{
-		//reply with something
-		return;
-	}
-	if (_mode & CH_CLIENT_LIMIT && _nbr_members >= _max_members)
-	{
-		//reply with ERR_CHANNELISFULL (471)
-		return;
-	}
-	if (_mode & CH_INVITE_ONLY && find(_invited.begin(), _invited.end(), c) == _invited.end())
-	{
-		//reply with ERR_INVITEONLYCHAN (473)
-		return;
-	}
-	if (_mode & CH_KEY == CH_KEY && passwd != _passwd)
-	{
-		// reply with ERR_BADCHANNELKEY (475)
-		return;
-	}
-	_members[c] = 0;
-	//send reply
 }
 
 void	Channel::remove_member(Client & c)
 {
 	std::map<Client, int>::iterator itr = _members.find(c);
 	if (itr != _members.end())
+	{
 		_members.erase(itr);
+		std::cout << "member removed" << std::endl;
+	}
 }
 
 void	Channel::promote_member(Client &c)
@@ -87,16 +96,53 @@ void	Channel::unpromote_member(Client &c)
 
 void	Channel::invite_member(Client & c)
 {
-	if (find(_invited.begin(), _invited.end(), c) != _invited.end())
-		_invited.push_back(c);
+	if (_members.find(c) == _members.end())
+	{
+		if (find(_invited.begin(), _invited.end(), c) != _invited.end())
+		{
+			_invited.push_back(c);
+			std::cout << "member invited" << std::endl;
+		}
+		else
+		{
+			std::cout << "member already have an invitation" << std::endl;
+		}
+	}
 	else
+	{
 		// ERR_USERONCHANNEL (443)
+		std::cout << "member in channel" << std::endl; 
+	}
 }
 
-int	Channel::is_member(Client &c) const
+int	Channel::is_member(Client &c)
 {
-	std::map<std::string, int>::iterator itr = _members.find(c);
+	std::map<Client, int>::iterator itr = _members.find(c);
 	if (itr == _members.end())
 		return (-1);
 	return (itr->second);
+}
+
+int	Channel::is_member(std::string &name)
+{
+	std::map<Client, int>::iterator itr = _members.begin();
+	while (itr != _members.end())
+	{
+		if (itr->first.get_nick_name() == name)
+			return (itr->second);
+		itr++;
+	}
+	return (-1);
+}
+
+const Client	&Channel::get_member_by_name(std::string &name)
+{
+	std::map<Client, int>::iterator itr = _members.begin();
+	while (itr != _members.end())
+	{
+		if (itr->first.get_nick_name() == name)
+			return (itr->first);
+		itr++;
+	}
+	throw ("Client not found");
 }
