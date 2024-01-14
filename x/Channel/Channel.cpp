@@ -26,7 +26,7 @@ void	Channel::set_max_members(size_t max_members) {_max_members = max_members;}
 
 // mode controle
 void	Channel::enable_mode(mode_t mode) {_mode |= mode;}
-void	Channel::disable_mode(mode_t mode) {_mode & (~mode);}
+void	Channel::disable_mode(mode_t mode) {_mode = _mode & (~mode);}
 
 
 // members methode
@@ -58,6 +58,9 @@ void	Channel::add_member(Client &c, std::string passwd)
 	}
 	_members[c] = 0;
 	std::cout << "memeber added succesfully" << std::endl;
+	// reply(c, RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1"));
+	// reply(c, RPL_TOPICDISPLAY(c.get_hostname(), c.get_nick_name(), channel, ch.get_topic()))
+	//no topic
 	//send reply
 }
 
@@ -145,4 +148,18 @@ const Client	&Channel::get_member_by_name(std::string &name)
 		itr++;
 	}
 	throw ("Client not found");
+}
+
+void	Channel::broadcast(const std::string &msg)
+{
+	std::map<Client, int>::iterator itr = _members.begin();
+	while (itr != _members.end())
+	{
+		ssize_t	count = send(itr->first.get_socket_fd(), msg.c_str(), strlen(msg.c_str()), 0);
+		if (count == -1)
+		{
+			std :: cerr << "Error sending" << std::endl;
+		}
+		itr++;
+	}
 }

@@ -15,6 +15,7 @@ class	Client
 		std::string 				get_user_name() const;
 		std::string 				get_real_name() const;
 		std::string					get_hostname() const;
+		std::string					get_passwd() const;
 		bool						get_status() const;
 
 		// seters
@@ -23,6 +24,7 @@ class	Client
 		void 				set_user_name(std::string);
 		void 				set_real_name(std::string);
 		void				set_hostname(std::string);
+		void				set_passwd(std::string);
 		void				set_status(bool);
 		
 
@@ -32,6 +34,7 @@ class	Client
 		std::string			_user_name;
 		std::string			_real_name;
 		std::string			_hostname;
+		std::string			_passwd;
 		bool				_registred;
 };
 

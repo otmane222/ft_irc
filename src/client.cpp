@@ -98,7 +98,7 @@ void nick(client& cl, std::vector<std::string> cmd, std::vector<client> cls)
 		if ((*it).getNickName() != "" && (*it).getNickName() == cmd[1])
 			return (cl.stat.nickname = false, cl.reply(ERR_NICKNAMEINUSE(cl.getNickName(), cl.getHostName())));
 	} 
-	const char* search = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789([]{})\'|";
+	const char* search = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
 	if (std::isdigit(cmd[1][0]))
 		return (cl.stat.nickname = false, cl.reply(ERR_ERRONEUSNICKNAME(cl.getNickName(), cl.getHostName())));
 	size_t i = 0;

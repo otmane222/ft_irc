@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <sys/socket.h>
 #include "../Client/Client.hpp"
 
 #define CH_CLIENT_LIMIT 1
@@ -42,11 +43,11 @@ class	Channel
 		void	promote_member(Client &);
 		void	unpromote_member(Client &);
 		void	invite_member(Client &);
-
 		int		is_member(Client &); // -1 : not a memeber , 0 : simple user , 1 : operator
 		int		is_member(std::string &); // -1 : not a memeber , 0 : simple user , 1 : operator
-
 		const Client	&get_member_by_name(std::string &);
+
+		void	broadcast(const std::string &);
 
 	private :
 		std::string					_name;
