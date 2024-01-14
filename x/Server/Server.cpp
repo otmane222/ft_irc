@@ -4,14 +4,14 @@ Server::Server(int	port, std::string passwd) :
 _port(port), _passwd(passwd)
 {
 	_socket_fd = -1;
-	_cmds["PASS"] = &Server::pass;
-	_cmds["NICK"] = &Server::nick;
-	_cmds["USER"] = &Server::user;
-	_cmds["PRIVMSG"] = &Server::privmsg;
-	_cmds["JOIN"] = &Server::join;
-	_cmds["KICK"] = &Server::kick;
-	_cmds["INVITE"] = &Server::invite;
-	_cmds["TOPIC"] = &Server::topic;
+	// _cmds["PASS"] = &Server::pass;
+	// _cmds["NICK"] = &Server::nick;
+	// _cmds["USER"] = &Server::user;
+	// _cmds["PRIVMSG"] = &Server::privmsg;
+	// _cmds["JOIN"] = &Server::join;
+	// _cmds["KICK"] = &Server::kick;
+	// _cmds["INVITE"] = &Server::invite;
+	// _cmds["TOPIC"] = &Server::topic;
 	// _cmds["MODE"] = &Server::;
 	// _cmds["PING"] = &Server::;
 	// _cmds["PONG"] = &Server::;
@@ -105,7 +105,7 @@ Client		&Server::get_client_by_id(int sock_fd)
 
 void	Server::reply(Client &c, const std::string &msg) const
 {
-	size_t	count = send(c.get_socket_fd(), msg.c_str(), strlen(msg.c_str()), 0);
+	ssize_t	count = send(c.get_socket_fd(), msg.c_str(), strlen(msg.c_str()), 0);
 	if (count == -1)
 		std::cerr << "failure" << std::endl;
 }
@@ -145,7 +145,7 @@ void	Server::nick(std::string param, Client &c)
 		reply(c, ERR_NONICKNAMEGIVEN(c.get_nick_name(), c.get_hostname()));
 		return;
 	}
-	for  (int i = 0; i < nick_name.size(); i++)
+	for  (size_t i = 0; i < nick_name.size(); i++)
 	{
 		if (std::isalnum(nick_name[i]) || nick_name[i] == '_')
 			continue;
@@ -197,7 +197,7 @@ void	Server::user(std::string param, Client &c)
 		reply(c, ERR_ALREADYREGISTERED(c.get_nick_name(), c.get_hostname()));
 		return;
 	}
-	for  (int i = 0; i < user_name.size(); i++)
+	for  (size_t i = 0; i < user_name.size(); i++)
 	{
 		if (std::isalnum(user_name[i]) || user_name[i] == '_')
 			continue;
@@ -462,21 +462,22 @@ void	Server::topic(std::string param, Client &c)
 
 void		Server::execute_cmd(std::string msg, Client &c)
 {
+	(void)c;
 	std::string cmd = get_token(msg);
 	if (cmd.empty() || cmd == "\r\n")
 		return;
-	for (int i = 0; i < cmd.size(); i++)
+	for (size_t i = 0; i < cmd.size(); i++)
 		cmd[i] = toupper(cmd[i]);
-	if (find(_cmds.begin(), _cmds.end(), cmd) == _cmds.end())
-	{
-		reply(c, ERR_UNKNOWNCOMMAND(c.get_nick_name(), c.get_hostname(), cmd));
-		return;
-	}
+	// if (find(_cmds.begin(), _cmds.end(), cmd) == _cmds.end())
+	// {
+	// 	reply(c, ERR_UNKNOWNCOMMAND(c.get_nick_name(), c.get_hostname(), cmd));
+	// 	return;
+	// }
 	if (msg.back() == '\n')
 		msg.pop_back();
 	if (msg.back() == '\r')
 		msg.pop_back();
-	this->*_cmds[cmd](msg, c);
+	// (this->*_cmds[cmd])(msg, c);
 }
 
 std::string	get_token(std::string& str)
@@ -524,6 +525,12 @@ std::string	recving(int fd)
 		if (bufferr == -1)
 		{
 			throw std::runtime_error("Error reciving");
+		}
+		if (std::strchr(buffer, '\0'))
+		{
+			buffer[bufferr] = '\0';
+			line.append(buffer);
+			return (line);
 		}
 		buffer[bufferr] = '\0';
 		line.append(buffer);
@@ -587,7 +594,7 @@ void		Server::start()
 				{
 					std::string line = recving(pollfds[i].fd);
 					std:: cout << "Message Received From client " << i << " " << line << std::endl;
-					execute_cmd(line, get_client_by_id(pollfds[i].fd));
+					// execute_cmd(line, get_client_by_id(pollfds[i].fd));
 					// clients[pollfds[i].fd].registration(line, password, cls);
 					// clients[pollfds[i].fd].reply("fajfkafjjafkja");
 					// (void)password;

@@ -38,19 +38,19 @@ void	Channel::add_member(Client &c, std::string passwd)
 		std::cout << "member already exists" << std::endl;
 		return;
 	}
-	if (_mode & CH_CLIENT_LIMIT && _nbr_members >= _max_members)
+	if ((_mode & CH_CLIENT_LIMIT) && _nbr_members >= _max_members)
 	{
 		//reply with ERR_CHANNELISFULL (471)
 		std::cout << "channel is full" << std::endl;
 		return;
 	}
-	if (_mode & CH_INVITE_ONLY && find(_invited.begin(), _invited.end(), c) == _invited.end())
+	if ((_mode & CH_INVITE_ONLY) && find(_invited.begin(), _invited.end(), c) == _invited.end())
 	{
 		//reply with ERR_INVITEONLYCHAN (473)
 		std::cout << "user is not invited" << std::endl;
 		return;
 	}
-	if (_mode & CH_KEY == CH_KEY && passwd != _passwd)
+	if ((_mode & CH_KEY) == CH_KEY && passwd != _passwd)
 	{
 		// reply with ERR_BADCHANNELKEY (475)
 		std::cout << "wrong key" << std::endl;
@@ -162,4 +162,10 @@ void	Channel::broadcast(const std::string &msg)
 		}
 		itr++;
 	}
+}
+
+
+bool	Channel::operator==(const Channel& cl) const
+{
+	return (this->_name == cl.get_name());
 }

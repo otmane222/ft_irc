@@ -80,6 +80,8 @@
 #define ERR_UNKNOWNCOMMAND(nick, hostname, command) ":" + hostname + " 421 " + nick + " " + command + " :Unknown command\r\n"
 
 #define ERR_CANNOTSENDTOCHAN(client, channel) ":" + client + channel + ":Cannot send to channel\r\n"
+
+
 class	Server
 {
 	public:
@@ -123,7 +125,7 @@ class	Server
 		std::string 				_passwd;
 		std::vector<Client>			_clients;
 		std::vector<Channel>		_channels;
-		std::map<std::string, (void)(*Server::f(std::string, Client &))> 	_cmds;
+		// std::map<std::string, void (Server::*)(std::string, Client&)> _cmds;
 };
 
 std::string	get_token(std::string&);

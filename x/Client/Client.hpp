@@ -26,7 +26,9 @@ class	Client
 		void				set_hostname(std::string);
 		void				set_passwd(std::string);
 		void				set_status(bool);
-		
+
+		bool				operator==(const Client& cl) const;
+		bool				operator < (const Client& cl) const;
 
 	private :
 		int					_sock_fd;

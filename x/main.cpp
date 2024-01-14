@@ -1,7 +1,7 @@
 #include "Server/Server.hpp"
 #include "Channel/Channel.hpp"
 #include "Client/Client.hpp"
-#include "Server/socketManager.hpp"
+#include "Server/SocketManager.hpp"
 
 int main(int ac, char **av)
 {

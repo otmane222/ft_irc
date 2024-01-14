@@ -30,3 +30,13 @@ void 	Client::set_real_name(std::string name) {_real_name = name;}
 void 	Client::set_hostname(std::string name) {_hostname = name;}
 void 	Client::set_passwd(std::string name) {_hostname = name;}
 void	Client::set_status(bool status) {_registred = status;}
+
+bool	Client::operator ==(const Client& cl) const
+{
+	return (this->_sock_fd == cl.get_socket_fd());
+}
+
+bool	Client::operator < (const Client& cl) const
+{
+	return (this->_sock_fd < cl.get_socket_fd());
+}

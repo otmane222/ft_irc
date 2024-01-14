@@ -49,6 +49,8 @@ class	Channel
 
 		void	broadcast(const std::string &);
 
+		bool				operator==(const Channel& cl) const;
+
 	private :
 		std::string					_name;
 		std::string					_passwd;
