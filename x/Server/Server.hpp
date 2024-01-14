@@ -120,12 +120,13 @@ class	Server
 
 		void		start();
 	private :
-		int							_socket_fd;
-		int							_port;
-		std::string 				_passwd;
-		std::vector<Client>			_clients;
-		std::vector<Channel>		_channels;
-		// std::map<std::string, void (Server::*)(std::string, Client&)> _cmds;
+		int						_socket_fd;
+		int						_port;
+		std::string 			_passwd;
+		std::vector<Client>		_clients;
+		std::vector<Channel>	_channels;
+		std::map<std::string, void (Server::*)(std::string, Client&)> _cmds;
+		// std::map<int, Client>		_clients;
 };
 
 std::string	get_token(std::string&);

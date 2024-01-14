@@ -4,14 +4,14 @@ Server::Server(int	port, std::string passwd) :
 _port(port), _passwd(passwd)
 {
 	_socket_fd = -1;
-	// _cmds["PASS"] = &Server::pass;
-	// _cmds["NICK"] = &Server::nick;
-	// _cmds["USER"] = &Server::user;
-	// _cmds["PRIVMSG"] = &Server::privmsg;
-	// _cmds["JOIN"] = &Server::join;
-	// _cmds["KICK"] = &Server::kick;
-	// _cmds["INVITE"] = &Server::invite;
-	// _cmds["TOPIC"] = &Server::topic;
+	_cmds["PASS"] = &Server::pass;
+	_cmds["NICK"] = &Server::nick;
+	_cmds["USER"] = &Server::user;
+	_cmds["PRIVMSG"] = &Server::privmsg;
+	_cmds["JOIN"] = &Server::join;
+	_cmds["KICK"] = &Server::kick;
+	_cmds["INVITE"] = &Server::invite;
+	_cmds["TOPIC"] = &Server::topic;
 	// _cmds["MODE"] = &Server::;
 	// _cmds["PING"] = &Server::;
 	// _cmds["PONG"] = &Server::;
@@ -113,32 +113,36 @@ void	Server::reply(Client &c, const std::string &msg) const
 void	Server::pass(std::string param, Client &c)
 {
 	std::string	passwd = get_token(param);
+	if (!c.get_nick_name().empty())
+		return;
 	if (passwd.empty())
 	{
 		reply(c, ERR_NEEDMOREPARAMS(c.get_nick_name(), c.get_hostname()));
+		c.set_pass_stat(false);
 		return;
 
 	}
 	if (c.get_status())
 	{
 		reply(c, ERR_ALREADYREGISTERED(c.get_nick_name(), c.get_hostname()));
+		c.set_pass_stat(false);
 		return;
 	}
 	if (passwd != _passwd)
 	{
 		reply(c, ERR_PASSWDMISMATCH(c.get_nick_name(), c.get_hostname()));
+		c.set_pass_stat(false);
 		return;
 	}
-	if (!c.get_nick_name().empty())
-		return;
 	c.set_passwd(passwd);
+	c.set_pass_stat(true);
 	std::cout << "password accepted" << std::endl;
 }
 
 void	Server::nick(std::string param, Client &c)
 {
 	std::string	nick_name = get_token(param);
-	if (c.get_passwd().empty())
+	if (!c.get_pass_stat())
 		return;
 	if (nick_name.empty())
 	{
@@ -155,23 +159,32 @@ void	Server::nick(std::string param, Client &c)
 			return;
 		}
 	}
-	if (client_exists(nick_name))
+	std::vector<Client>::iterator it = _clients.begin();
+	for (; it != _clients.end(); it++)
 	{
-		reply(c, ERR_NICKNAMEINUSE(c.get_nick_name(), c.get_hostname()));
-		return;
-	}
-	std::string	old_nick_name = c.get_nick_name();
-	c.set_nick_name(nick_name);
-	std::vector<Channel>::iterator itr = _channels.begin();
-	while (itr != _channels.end())
-	{
-		if (itr->is_member(c) >= 0)
+		if ((*it).get_nick_name() != "" && (*it).get_nick_name() == nick_name)
 		{
-			itr->broadcast(RPL_NICKCHANGE(old_nick_name, nick_name, c.get_hostname()));
+			if ((*it) == c)
+				break ;
+			return (reply(c, ERR_NICKNAMEINUSE(c.get_nick_name(), c.get_hostname())));
 		}
-		itr++;
+	} 
+	std::string	old_nick_name = c.get_nick_name();
+	std::vector<Channel>::iterator itr = _channels.begin();
+	if (c.get_nick_name() != "")
+	{
+		while (itr != _channels.end())
+		{
+			if (itr->is_member(c) >= 0)
+			{
+				itr->broadcast(RPL_NICKCHANGE(old_nick_name, nick_name, c.get_hostname()));
+			}
+			itr++;
+		}
 	}
-	reply(c, RPL_NICKCHANGE(old_nick_name, nick_name, c.get_hostname()));
+	if (c.get_nick_name() != "")
+		reply(c, RPL_NICKCHANGE(old_nick_name, nick_name, c.get_hostname()));
+	c.set_nick_name(nick_name);
 }
 
 void	Server::user(std::string param, Client &c)
@@ -185,7 +198,7 @@ void	Server::user(std::string param, Client &c)
 	zero = get_token(param);
 	asterisk = get_token(param);
 	real_name = get_token(param);
-	if (!c.get_nick_name().empty())
+	if (c.get_nick_name().empty())
 		return;
 	if (user_name.empty() || zero.empty() || asterisk.empty())
 	{
@@ -208,9 +221,10 @@ void	Server::user(std::string param, Client &c)
 		}
 	}
 	if (zero != "0" || asterisk != "*")
-		return;
+		return ;
 	c.set_user_name(user_name);
 	c.set_real_name(real_name);
+	c.set_status(true);
 	reply(c, RPL_WELCOME(c.get_nick_name(), c.get_hostname()));
 	std::cout << "username accepted" << std::endl;
 }
@@ -462,22 +476,22 @@ void	Server::topic(std::string param, Client &c)
 
 void		Server::execute_cmd(std::string msg, Client &c)
 {
-	(void)c;
+	if (msg.back() == '\n')
+		msg.pop_back();
+	if (msg.back() == '\r')
+		msg.pop_back();
 	std::string cmd = get_token(msg);
 	if (cmd.empty() || cmd == "\r\n")
 		return;
 	for (size_t i = 0; i < cmd.size(); i++)
 		cmd[i] = toupper(cmd[i]);
-	// if (find(_cmds.begin(), _cmds.end(), cmd) == _cmds.end())
-	// {
-	// 	reply(c, ERR_UNKNOWNCOMMAND(c.get_nick_name(), c.get_hostname(), cmd));
-	// 	return;
-	// }
-	if (msg.back() == '\n')
-		msg.pop_back();
-	if (msg.back() == '\r')
-		msg.pop_back();
-	// (this->*_cmds[cmd])(msg, c);
+	if (this->_cmds.find(cmd) != this->_cmds.end())
+		(this->*_cmds[cmd])(msg, c);
+	else
+	{
+		reply(c, ERR_UNKNOWNCOMMAND(c.get_nick_name(), c.get_hostname(), cmd));
+		return;
+	}
 }
 
 std::string	get_token(std::string& str)
@@ -516,14 +530,17 @@ std::string	get_token(std::string& str)
 std::string	recving(int fd)
 {
 	char	buffer[512];
-	std::string line;
+	std::string line = "";
 	std::string str;
 	ssize_t	bufferr;
+
 	while (1)
 	{
-		bufferr = recv(fd, buffer, sizeof(buffer) - 1, 0);
+		bufferr = recv(fd, buffer, 511, 0);
 		if (bufferr == -1)
 		{
+			if (errno == EAGAIN)
+				return (line);
 			throw std::runtime_error("Error reciving");
 		}
 		if (std::strchr(buffer, '\0'))
@@ -576,17 +593,18 @@ void		Server::start()
 						pollfds.push_back(Pollfd);
 
 
-						// client	a(_clientSocket);
-						// clients[_clientSocket] = a;
-						// cls.push_back(a);
+						Client	a(_clientSocket);
+						_clients.push_back(a);
+						// _clients[_clientSocket] = a;
 					}
 					break ;
 				}
 				else if ((pollfds[i].revents & POLLHUP) == POLLHUP)
 				{
-					// get_client_by_id(pollfds[i].fd).close_connection();
-					// pollfds.erase(pollfds.begin() + i);
-					// _clients.erase(pollfds[i].fd);
+					std::cout << "Client Disconnected" << std::endl;
+					get_client_by_id(pollfds[i].fd).close_connection();
+					pollfds.erase(pollfds.begin() + i);
+					// _clients.erase(find(get_client_by_id(pollfds[i].fd).begin(), ));
 
 					break ;
 				}
@@ -594,7 +612,7 @@ void		Server::start()
 				{
 					std::string line = recving(pollfds[i].fd);
 					std:: cout << "Message Received From client " << i << " " << line << std::endl;
-					// execute_cmd(line, get_client_by_id(pollfds[i].fd));
+					execute_cmd(line, get_client_by_id(pollfds[i].fd));
 					// clients[pollfds[i].fd].registration(line, password, cls);
 					// clients[pollfds[i].fd].reply("fajfkafjjafkja");
 					// (void)password;
