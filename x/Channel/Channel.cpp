@@ -158,7 +158,7 @@ void	Channel::broadcast(const std::string &msg)
 		ssize_t	count = send(itr->first.get_socket_fd(), msg.c_str(), strlen(msg.c_str()), 0);
 		if (count == -1)
 		{
-			std :: cerr << "Error sending" << std::endl;
+			std :: cout << "Error sending" << std::endl;
 		}
 		itr++;
 	}

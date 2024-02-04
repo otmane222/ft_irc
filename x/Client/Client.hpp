@@ -14,6 +14,7 @@
 
 class	Client
 {
+	std::string line;
 	public:
 		Client(int = -1);
 		~Client();
@@ -25,6 +26,7 @@ class	Client
 		std::string 				get_real_name() const;
 		std::string					get_hostname() const;
 		std::string					get_passwd() const;
+		std::string			get_line_read() const;
 		bool						get_status() const;
 		bool						get_pass_stat() const;
 
@@ -35,6 +37,7 @@ class	Client
 		void 				set_real_name(std::string);
 		void				set_hostname(std::string);
 		void				set_passwd(std::string);
+		void				set_line(std::string);
 		void				set_status(bool);
 		void				set_pass_stat(bool);
 

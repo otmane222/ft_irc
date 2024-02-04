@@ -7,7 +7,7 @@ int main(int ac, char **av)
 {
 	if (ac != 3)
 	{
-		std::cerr << "Usage: " << av[0] << " <port> <password>" << std::endl;
+		std::cout << "Usage: " << av[0] << " <port> <password>" << std::endl;
 		return (1);
 	}
 
@@ -27,6 +27,10 @@ int main(int ac, char **av)
 					e.what()
 					<<
 		std ::		endl;
+	}
+	catch (const char * s)
+	{
+		std:: cout << s << std::endl;
 	}
 
 	return 0;
@@ -309,7 +313,7 @@ int main(int ac, char **av)
 //     // Step 1: Create a socket (AF_INET for IPv4, SOCK_STREAM for TCP)
 //     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 //     if (serverSocket == -1) {
-//         std::cerr << "Error creating socket" << std::endl;
+//         std::cout << "Error creating socket" << std::endl;
 //         exit(EXIT_FAILURE);
 //     }
 
@@ -322,14 +326,14 @@ int main(int ac, char **av)
 
 //     // Step 3: Bind the socket to the server address
 //     if (bind(serverSocket, reinterpret_cast<struct sockaddr*>(&serverAddress), sizeof(serverAddress)) == -1) {
-//         std::cerr << "Error binding socket" << std::endl;
+//         std::cout << "Error binding socket" << std::endl;
 //         close(serverSocket);
 //         exit(EXIT_FAILURE);
 //     }
 
 //     // Step 4: Set the socket to listen for incoming connections
 //     if (listen(serverSocket, 10) == -1) {
-//         std::cerr << "Error listening on socket" << std::endl;
+//         std::cout << "Error listening on socket" << std::endl;
 //         close(serverSocket);
 //         exit(EXIT_FAILURE);
 //     }
@@ -341,7 +345,7 @@ int main(int ac, char **av)
 //     socklen_t clientAddressLength = sizeof(clientAddress);
 //     int clientSocket = accept(serverSocket, reinterpret_cast<struct sockaddr*>(&clientAddress), &clientAddressLength);
 //     if (clientSocket == -1) {
-//         std::cerr << "Error accepting connection" << std::endl;
+//         std::cout << "Error accepting connection" << std::endl;
 //         close(serverSocket);
 //         exit(EXIT_FAILURE);
 //     }

@@ -107,7 +107,7 @@ void	Server::reply(Client &c, const std::string &msg) const
 {
 	ssize_t	count = send(c.get_socket_fd(), msg.c_str(), strlen(msg.c_str()), 0);
 	if (count == -1)
-		std::cerr << "failure" << std::endl;
+		std::cout << "failure" << std::endl;
 }
 
 void	Server::pass(std::string param, Client &c)
@@ -185,6 +185,7 @@ void	Server::nick(std::string param, Client &c)
 	if (c.get_nick_name() != "")
 		reply(c, RPL_NICKCHANGE(old_nick_name, nick_name, c.get_hostname()));
 	c.set_nick_name(nick_name);
+	std:: cout << "nick accepted"<<std::endl;
 }
 
 void	Server::user(std::string param, Client &c)
@@ -476,6 +477,7 @@ void	Server::topic(std::string param, Client &c)
 
 void		Server::execute_cmd(std::string msg, Client &c)
 {
+	std::cout << ">>>>> cmd "<< msg << std::endl;
 	if (msg.back() == '\n')
 		msg.pop_back();
 	if (msg.back() == '\r')
@@ -529,32 +531,39 @@ std::string	get_token(std::string& str)
 
 std::string	recving(int fd)
 {
-	char	buffer[512];
+	char	buffer[4];
 	std::string line = "";
-	std::string str;
 	ssize_t	bufferr;
 
-	while (1)
+	std::memset(buffer, 0, sizeof(buffer));
+	bufferr = recv(fd, buffer, sizeof(buffer) - 1, 0);
+	if (bufferr == -1)
 	{
-		bufferr = recv(fd, buffer, 511, 0);
-		if (bufferr == -1)
+		if (errno == EAGAIN)
 		{
-			if (errno == EAGAIN)
-				return (line);
-			throw std::runtime_error("Error reciving");
-		}
-		if (std::strchr(buffer, '\0'))
-		{
-			buffer[bufferr] = '\0';
-			line.append(buffer);
+			std:: cout << "roro" << std::endl;
 			return (line);
 		}
-		buffer[bufferr] = '\0';
-		line.append(buffer);
-		if (std::strchr(buffer, '\n'))
-			break;
+		throw std::runtime_error("Error reciving");
 	}
+	line.append(buffer);
 	return (line);
+}
+
+void eraseSubstring(std::string& str)
+{
+	size_t pos = str.find("\r\n");
+	if (pos != std::string::npos) {
+		str.erase(0, pos + 2);
+	}
+}
+
+void eraseSubstring2(std::string& str)
+{
+	size_t pos = str.find("\r\n");
+	if (pos != std::string::npos) {
+		str.erase(pos + 2, str.length());
+	}
 }
 
 void		Server::start()
@@ -566,7 +575,7 @@ void		Server::start()
 	pollfd Pollfd;
 
 	Pollfd.fd = _socket_fd;
-	Pollfd.events = POLLIN;
+	Pollfd.events = 1;
 	Pollfd.revents = 0;
 
 	pollfds.push_back(Pollfd);
@@ -574,8 +583,16 @@ void		Server::start()
 	{
 		if (poll(pollfds.data(), pollfds.size(), -1) == -1)
 			throw std::runtime_error("Error polling");
-		for (size_t i = 0; i <= pollfds.size(); i++) // EAGAIN is an erno 
+		for (size_t i = 0; i < pollfds.size(); i++) // EAGAIN is an erno 
 		{
+			if ((pollfds[i].revents & POLLHUP) == POLLHUP)
+			{
+				std::cout << "Client Disconnected" << std::endl;
+				get_client_by_id(pollfds[i].fd).close_connection();
+				pollfds.erase(pollfds.begin() + i);
+				_clients.erase(_clients.begin() + i - 1);
+				break ;
+			}
 			if ((pollfds[i].revents & POLLIN) == POLLIN)
 			{
 				if (i == 0)
@@ -583,11 +600,21 @@ void		Server::start()
 					_clientSocket = accept(_socket_fd, reinterpret_cast<struct sockaddr*>(&clientaddr), &len);
 					if (_clientSocket == -1)
 					{
-						perror("Error connecting with client");
-						continue ;
+						if (errno == EMFILE)
+						{
+							std::cout << "Maximum file descriptors reached" << std::endl;
+							continue;
+						}
+						else
+						{
+							perror("Error connecting with client");
+							continue;
+						}
 					}
 					else
 					{
+						if (fcntl(_clientSocket, F_SETFL, O_NONBLOCK) == -1)
+							perror("fcntl");
 						std::cout << "New Connection Has Been Accepted, Client Socket: "<< _clientSocket - 3 << std::endl;
 						Pollfd.fd = _clientSocket;
 						pollfds.push_back(Pollfd);
@@ -595,32 +622,34 @@ void		Server::start()
 
 						Client	a(_clientSocket);
 						_clients.push_back(a);
-						// _clients[_clientSocket] = a;
 					}
-					break ;
-				}
-				else if ((pollfds[i].revents & POLLHUP) == POLLHUP)
-				{
-					std::cout << "Client Disconnected" << std::endl;
-					get_client_by_id(pollfds[i].fd).close_connection();
-					pollfds.erase(pollfds.begin() + i);
-					// _clients.erase(find(get_client_by_id(pollfds[i].fd).begin(), ));
-
 					break ;
 				}
 				else
 				{
-					std::string line = recving(pollfds[i].fd);
-					std:: cout << "Message Received From client " << i << " " << line << std::endl;
-					execute_cmd(line, get_client_by_id(pollfds[i].fd));
-					// clients[pollfds[i].fd].registration(line, password, cls);
-					// clients[pollfds[i].fd].reply("fajfkafjjafkja");
-					// (void)password;
+					Client&		 cl = get_client_by_id(pollfds[i].fd);
+					std::string cl_line = cl.get_line_read();
+				
+
+					std::string	line = recving(pollfds[i].fd);
+
+					cl_line.append(line.c_str());
+					cl.set_line(cl_line);
+					if (std::strstr(cl_line.c_str(), "\r\n"))
+					{
+
+						std::string kaka = cl_line;
+
+						eraseSubstring2(kaka);
+
+						execute_cmd(kaka, cl);
+
+						eraseSubstring(cl_line);
+
+						cl.set_line(cl_line);
+					}
 				}
 			}
 		}
 	}
 }
-//hello 
-//hello
-//

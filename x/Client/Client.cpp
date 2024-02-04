@@ -28,9 +28,11 @@ std::string 				Client::get_user_name() const{return _user_name;}
 std::string 				Client::get_real_name() const{return _real_name;}
 std::string 				Client::get_hostname() const{return _hostname;}
 std::string 				Client::get_passwd() const{return _hostname;}
+std::string					Client::get_line_read() const {return  line;}
 bool		 				Client::get_status() const{return _registred;}
 bool		 				Client::get_pass_stat() const{return _pass_valid;}
 
+void	Client::set_line(std::string name) {line = name;}
 void	Client::set_socket_fd(int sock_fd) {_sock_fd = sock_fd;}
 void 	Client::set_nick_name(std::string name) {_nick_name = name;}
 void 	Client::set_user_name(std::string name) {_user_name = name;}

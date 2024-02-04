@@ -4,6 +4,7 @@ SocketManager::SocketManager(int port)
 {
 	struct sockaddr_in serverAddr;
 
+	std::memset(&serverAddr, 0, sizeof(sockaddr_in));
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSocket == -1)
 	{
@@ -25,10 +26,10 @@ SocketManager::SocketManager(int port)
 		perror("fcntl");
 		exit (1);
 	}
-	
+
 	serverAddr.sin_port = htons(port);
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serverAddr.sin_addr.s_addr = INADDR_ANY;
 
 	if (bind(serverSocket, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1)
 	{
@@ -51,4 +52,4 @@ int	SocketManager::getSocket()
 SocketManager::~SocketManager()
 {
 	close(serverSocket);
-}
+} 
