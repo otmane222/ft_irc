@@ -18,7 +18,7 @@
 #include "../Channel/Channel.hpp"
 #include "../Client/Client.hpp"
 
-#define RPL_PRIVMSG(source, target, message) ":" + source + " PRIVMSG " + target + " :" + message
+#define RPL_PRIVMSG(source, target, message) ":" + source + " PRIVMSG " + target + " :" + message + "\r\n"
 
 #define RPL_WELCOME(nick, hostname) ":" + hostname + " 001 " + nick + " :Welcome " + nick + " to the ft_irc network !\r\n"
 #define RPL_YOURHOST(nick, hostname) ":" + hostname + " 002 " + nick + " :Your host is " + hostname + " running version 1.0 !\r\n"
@@ -133,3 +133,4 @@ class	Server
 
 std::string	get_token(std::string&);
 std::string	recving(int fd, std::vector<int> fds);
+std::string	get_source(std::string, std::string, std::string);

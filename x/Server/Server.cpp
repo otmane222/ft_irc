@@ -232,14 +232,15 @@ void	Server::user(std::string param, Client &c)
 
 void	Server::privmsg(std::string param, Client &c)
 {
+	std::cout << "privmsg is being executed" << std::endl;
 	std::string	s_targets;
 	std::string	s_msg;
 	std::map<std::string, int> targets;
-
 	s_targets = get_token(param);
 	s_msg = get_token(param);
 	if (s_targets.empty() || s_msg.empty())
 	{
+		std::cout << "target is empty" << std::endl;
 		// reply with  ERR_NEEDMOREPARAMS (461)
 		reply(c, ERR_NEEDMOREPARAMS(c.get_nick_name(), c.get_hostname()));
 		return;
@@ -284,7 +285,8 @@ void	Server::privmsg(std::string param, Client &c)
 		{
 			if (client_exists(itr->first))
 			{
-				reply(c, RPL_PRIVMSG(c.get_nick_name(), itr->first, s_msg));
+				Client c2 = get_client_by_name(itr->first);
+				reply(c2, RPL_PRIVMSG(get_source(c.get_nick_name(), c.get_real_name(), c.get_hostname()), itr->first, s_msg));
 				return;
 			}
 			else
@@ -652,4 +654,10 @@ void		Server::start()
 			}
 		}
 	}
+}
+
+std::string	get_source(std::string nick, std::string user, std::string host)
+{
+	return nick + "!" + user + "@" + host;
+	//nick>!<user>@<host>
 }
