@@ -28,7 +28,7 @@ int	main(int ac, char **av)
 		}
 		memcpy(&serverAddress.sin_addr.s_addr, host->h_addr, host->h_length);	
 
-		// Connexion au serveur
+		//connect with server
 		if (connect(botSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
 			std::cerr << "Error during connection" << std::endl;
 			return 1;
@@ -52,7 +52,6 @@ int	main(int ac, char **av)
 
 		std::cout << " /BOT\\ The bot is logged !" << std::endl;
 
-		// GESTION DES COMMANDES avec recv()
 		std::string botJoinChannel = "JOIN #bot\r\n";
 
 		usleep(10000);
@@ -67,6 +66,7 @@ int	main(int ac, char **av)
 		while (1) {
 			memset(buffer, 0, bufferSize);
 			int bytesRead = recv(botSocket, buffer, bufferSize, 0);
+			std::cout << "********" << buffer << bufferSize<<std::endl;
 			if (bytesRead == 0){
 				std::cerr << "Error: connection closed" << std::endl;
 				return 1;
@@ -84,7 +84,7 @@ int	main(int ac, char **av)
 					nick		= retreiveNickFromBuffer(buffer);
 					// Then we can proceed the bot reponses
 			   		 if (!message.empty())
-						botBehavior(message, botSocket, nick);
+					 	botBehavior(message, botSocket, nick);
 				}
 		}
 	}
@@ -144,45 +144,23 @@ int 	botBehavior(std::string message, int botSocket, std::string nick)
 	std::string response = std::string("PRIVMSG") + " " + channelName + " :";
 	if (message.find("PING") != std::string::npos)
 	{
-		// Répondre au PING du serveur pour éviter d'être déconnecté
-	 	std::string pongCommand = response.append("PONG\r\n");
+	 	std::string pongCommand = response.append("PONGGG\r\n");
 		send(botSocket, pongCommand.c_str(), pongCommand.length(), 0);
 	}
-	else if (message.find("bonjour") != std::string::npos)
+	else if (message.find("hello") != std::string::npos)
 	{
-	    std::string helloCommand = response.append("Bonjour ") + nick + ", comment allez vous ?" + std::string("\r\n");
+	    std::string helloCommand = response.append("hello ") + nick + ", how are you ?" + std::string("\r\n");
 	    send(botSocket, helloCommand.c_str(), helloCommand.size(), 0);
 	}
-	else if (message.find("bien") != std::string::npos)
+	else if (message.find("good") != std::string::npos)
 	{
-	    std::string goodCommand = response.append("Cela me rempli de joie ") + nick + " !\r\n";
+	    std::string goodCommand = response.append("nice ") + nick + " !\r\n";
 	    send(botSocket, goodCommand.c_str(), goodCommand.size(), 0);
 	}
-	else if (message.find("mal") != std::string::npos || message.find("pas bien") != std::string::npos)
+	else if (message.find("bad") != std::string::npos || message.find("not good") != std::string::npos)
 	{
-	    std::string badCommand = response.append("Cela m'attriste pour vous ") + nick + " ...\r\n";
+	    std::string badCommand = response.append("what is happen? ") + nick + " ...\r\n";
 	    send(botSocket, badCommand.c_str(), badCommand.size(), 0);
-	}
-	else if (message.find("quoi") != std::string::npos)
-	{
-	    srand(time(0));
-	    int nb = rand();
-	    std::string feurCommand;
-	    if (nb % 2 == 0)
-		 feurCommand = response.append("Feur !!\r\n");
-	    else
-		 feurCommand = response.append("coubeh !!\r\n");
-	    send(botSocket, feurCommand.c_str(), feurCommand.size(), 0);
-	}
-	else if (message.find("hein") != std::string::npos || message.find("1") != std::string::npos)
-	{
-	    std::string heinCommand = response.append("apanyan !! apanyan !\r\n");
-	    send(botSocket, heinCommand.c_str(), heinCommand.size(), 0);
-	}
-	else if (message.find("Fils de pendu") != std::string::npos || message.find("orchidoclaste") != std::string::npos || message.find("nigaud") != std::string::npos || message.find("flagorneur") != std::string::npos)
-	{
-	    std::string kickCommand = std::string("KICK") + " ircserv " + channelName + " :" + nick + " :You have been kicked for bad behavior, watch your mouth. " + "\r\n";
-	    send(botSocket, kickCommand.c_str(), kickCommand.size(), 0);
 	}
 	return 0;
 }
