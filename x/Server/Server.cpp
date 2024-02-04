@@ -286,7 +286,8 @@ void	Server::privmsg(std::string param, Client &c)
 			if (client_exists(itr->first))
 			{
 				Client c2 = get_client_by_name(itr->first);
-				reply(c2, RPL_PRIVMSG(get_source(c.get_nick_name(), c.get_real_name(), c.get_hostname()), itr->first, s_msg));
+				// reply(c2, RPL_PRIVMSG(get_source(c.get_nick_name(), c.get_real_name(), c.get_hostname()), itr->first, s_msg));
+				reply(c2, RPL_PRIVMSG(c.get_nick_name() , itr->first, s_msg));
 				return;
 			}
 			else
@@ -300,13 +301,17 @@ void	Server::privmsg(std::string param, Client &c)
 
 void	Server::join(std::string param, Client & c)
 {
+	if (!c.get_status())
+		return ;
+	std::cout << "join" << std::endl;
 	std::string	s_channels;
 	std::string	s_keys;
 	std::map<std::string, std::string> channels;
 	s_channels = get_token(param);
 	s_keys = get_token(param);
-	if (s_channels.empty())
+	if (s_channels.empty() || s_channels == "#")
 	{
+		std::cout << "no channel name is being provided" << std::endl;
 		reply(c, ERR_NEEDMOREPARAMS(c.get_nick_name(), c.get_hostname()));
 		return;
 	}
@@ -319,27 +324,30 @@ void	Server::join(std::string param, Client & c)
 		getline(channels_stream, channel, ',');
 		if (channel[0] != '#')
 		{
-			// reply with ERR_BADCHANMASK (476)
 			reply(c, ERR_BADCHANNELNAME(c.get_nick_name(), c.get_hostname(), channel));
+			std::cout << ERR_BADCHANNELNAME(c.get_nick_name(), c.get_hostname(), channel) << std::endl;
 			continue;
 		}
 		getline(keys_stream, key, ',');
 		if (channel_exists(channel))
 		{
+			std::cout << "channel exists :" << channel << std::endl;
 			Channel ch = get_channel_by_name(channel);
 			ch.add_member(c, key);
-			// reply(c, RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1"));
-			// reply(c, RPL_TOPICDISPLAY(c.get_hostname(), c.get_nick_name(), channel, ch.get_topic()));
+			reply(c, RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1"));
+			reply(c, RPL_TOPICDISPLAY(c.get_hostname(), c.get_nick_name(), channel, ch.get_topic()));
 		}
 		else
 		{
+			std::cout << "channel does not exists :" << channel << std::endl;
 			Channel	ch(channel, key);
 			if (!key.empty())
 				ch.enable_mode(CH_KEY);
 			_channels.push_back(ch);
 			ch.add_operator(c);
-			// reply(c, RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1"));
-			// reply(c, RPL_TOPICDISPLAY(c.get_hostname(), c.get_nick_name(), channel, ch.get_topic()));
+			// std::cout << RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1") << std::endl;
+			reply(c, RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1"));
+			reply(c, RPL_TOPICDISPLAY(c.get_hostname(), c.get_nick_name(), channel, ch.get_topic()));
 
 			// reply
 		}

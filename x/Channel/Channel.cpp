@@ -66,7 +66,7 @@ void	Channel::add_member(Client &c, std::string passwd)
 
 void	Channel::add_operator(Client &c)
 {
-	if (_members.find(c) == _members.end())
+	if (_members.find(c) != _members.end())
 	{
 		//reply with something
 		std::cout << "member already exists" << std::endl;
