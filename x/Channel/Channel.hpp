@@ -46,8 +46,10 @@ class	Channel
 		int		is_member(Client &); // -1 : not a memeber , 0 : simple user , 1 : operator
 		int		is_member(std::string &); // -1 : not a memeber , 0 : simple user , 1 : operator
 		const Client	&get_member_by_name(std::string &);
+		std::map <Client, int> get_members() const;
 
 		void	broadcast(const std::string &);
+		std::string	get_list_of_names();
 
 		bool				operator==(const Channel& cl) const;
 

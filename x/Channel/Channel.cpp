@@ -36,25 +36,25 @@ void	Channel::add_member(Client &c, std::string passwd)
 	{
 		//reply with something
 		std::cout << "member already exists" << std::endl;
-		return;
+		throw (1);
 	}
 	if ((_mode & CH_CLIENT_LIMIT) && _nbr_members >= _max_members)
 	{
 		//reply with ERR_CHANNELISFULL (471)
 		std::cout << "channel is full" << std::endl;
-		return;
+		throw (2);
 	}
 	if ((_mode & CH_INVITE_ONLY) && find(_invited.begin(), _invited.end(), c) == _invited.end())
 	{
 		//reply with ERR_INVITEONLYCHAN (473)
 		std::cout << "user is not invited" << std::endl;
-		return;
+		throw (3);
 	}
 	if ((_mode & CH_KEY) == CH_KEY && passwd != _passwd)
 	{
 		// reply with ERR_BADCHANNELKEY (475)
 		std::cout << "wrong key" << std::endl;
-		return;
+		throw (4);
 	}
 	_members[c] = 0;
 	std::cout << "memeber added succesfully" << std::endl;
@@ -164,7 +164,22 @@ void	Channel::broadcast(const std::string &msg)
 	}
 }
 
+std::string	Channel::get_list_of_names()
+{
+	std::string	names;
+	std::map<Client, int>::iterator itr = _members.begin();
+	while (itr != _members.end())
+	{
+		if (itr->second == 1)
+			names += "@" + itr->first.get_nick_name() + " ";
+		else
+			names += itr->first.get_nick_name() + " ";
+		itr++;
+	}
+	return names;
+}
 
+std::map <Client, int> Channel::get_members() const {return _members;}
 bool	Channel::operator==(const Channel& cl) const
 {
 	return (this->_name == cl.get_name());

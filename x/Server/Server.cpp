@@ -12,7 +12,8 @@ _port(port), _passwd(passwd)
 	_cmds["KICK"] = &Server::kick;
 	_cmds["INVITE"] = &Server::invite;
 	_cmds["TOPIC"] = &Server::topic;
-	// _cmds["MODE"] = &Server::;
+	// _cmds["MODE"] = &Server::mode;
+	// _cmd["PART"] == &Server::part;
 	// _cmds["PING"] = &Server::;
 	// _cmds["PONG"] = &Server::;
 }
@@ -103,50 +104,51 @@ Client		&Server::get_client_by_id(int sock_fd)
 	throw ("Client does not exists");
 }
 
-void	Server::reply(Client &c, const std::string &msg) const
+void	Server::reply(const Client &c, const std::string &msg) const
 {
 	ssize_t	count = send(c.get_socket_fd(), msg.c_str(), strlen(msg.c_str()), 0);
 	if (count == -1)
-		std::cout << "failure" << std::endl;
+		std::cerr << "failure" << std::endl;
 }
 
 void	Server::pass(std::string param, Client &c)
 {
 	std::string	passwd = get_token(param);
-	if (!c.get_nick_name().empty())
-		return;
 	if (passwd.empty())
 	{
-		reply(c, ERR_NEEDMOREPARAMS(c.get_nick_name(), c.get_hostname()));
-		c.set_pass_stat(false);
+		reply(c, ":irc.bmeek.chat 461 PASS :Not enough parameters\r\n");
 		return;
-
 	}
-	if (c.get_status())
+	if (c.is_athantificated())
 	{
-		reply(c, ERR_ALREADYREGISTERED(c.get_nick_name(), c.get_hostname()));
+		reply(c, ":irc.bmeek.chat 462 " + c.get_nick_name() + " :You may not reregister!\r\n");
 		c.set_pass_stat(false);
 		return;
 	}
 	if (passwd != _passwd)
 	{
-		reply(c, ERR_PASSWDMISMATCH(c.get_nick_name(), c.get_hostname()));
-		c.set_pass_stat(false);
+		reply(c, ":irc.bmeek.chat 464 :Password incorrect\r\n");
 		return;
 	}
-	c.set_passwd(passwd);
-	c.set_pass_stat(true);
+	if (!c.get_pass_status())
+	{
+		c.set_passwd(passwd);
+		c.set_pass_status(true);
+	}
 	std::cout << "password accepted" << std::endl;
+	if (c.is_athantificated())
+	{
+		reply(c, ":irc.bmeek.chat 001 " + c.get_nick_name() + " Welcome to the gulag\r\n");
+		reply(c, ":irc.bmeek.chat 002 " + c.get_nick_name() + " If you survive you earn your freedom\r\n");
+	}
 }
 
 void	Server::nick(std::string param, Client &c)
 {
 	std::string	nick_name = get_token(param);
-	if (!c.get_pass_stat())
-		return;
 	if (nick_name.empty())
 	{
-		reply(c, ERR_NONICKNAMEGIVEN(c.get_nick_name(), c.get_hostname()));
+		reply(c, ":bmeek.chat 431 :No nickname given\r\n");
 		return;
 	}
 	for  (size_t i = 0; i < nick_name.size(); i++)
@@ -155,36 +157,54 @@ void	Server::nick(std::string param, Client &c)
 			continue;
 		else
 		{
-			reply(c, ERR_ERRONEUSNICKNAME(c.get_nick_name(), c.get_hostname()));
+			reply(c, ":irc.bmeek.chat 432 " + nick_name + " :Erroneous nickname\r\n");
 			return;
 		}
 	}
 	std::vector<Client>::iterator it = _clients.begin();
+	// xhexk if the nick name already in use
 	for (; it != _clients.end(); it++)
 	{
-		if ((*it).get_nick_name() != "" && (*it).get_nick_name() == nick_name)
+		if ((*it).get_nick_name() == nick_name)
 		{
 			if ((*it) == c)
-				break ;
-			return (reply(c, ERR_NICKNAMEINUSE(c.get_nick_name(), c.get_hostname())));
+				return;
+			return (reply(c, ":irc.bmeek.chat 433 " + nick_name + " :Nickname is already in use\r\n"));
 		}
 	} 
-	std::string	old_nick_name = c.get_nick_name();
-	std::vector<Channel>::iterator itr = _channels.begin();
-	if (c.get_nick_name() != "")
+	if (c.is_athantificated())
 	{
+		std::string	old_nick_name = c.get_nick_name();
+		std::vector<Channel>::iterator itr = _channels.begin();
 		while (itr != _channels.end())
 		{
 			if (itr->is_member(c) >= 0)
 			{
-				itr->broadcast(RPL_NICKCHANGE(old_nick_name, nick_name, c.get_hostname()));
+					std::map<Client, int> m = itr->get_members();
+					std::map<Client, int>::iterator m_itr = m.begin();
+					while (m_itr != m.end())
+					{
+						if (m_itr->first == c)
+							continue;
+							// :oho!~obahi@197.230.30.146 NICK :bbbbb
+						reply(m_itr->first, ":" + old_nick_name + "!~" + c.get_user_name() + "@" + c.get_hostname() + " NICK :" + nick_name + "\r\n");
+						m_itr++;
+					}
 			}
 			itr++;
 		}
+		reply(c, ":" + old_nick_name + "!~" + c.get_user_name() + "@" + c.get_hostname() + " NICK :" + nick_name + "\r\n");
 	}
-	if (c.get_nick_name() != "")
-		reply(c, RPL_NICKCHANGE(old_nick_name, nick_name, c.get_hostname()));
-	c.set_nick_name(nick_name);
+	else
+	{
+		c.set_nick_name(nick_name);
+		c.set_nick_status(true);
+		if (c.is_athantificated())
+		{
+			reply(c, ":irc.bmeek.chat 001 " + c.get_nick_name() + " Welcome to the gulag\r\n");
+			reply(c, ":irc.bmeek.chat 002 " + c.get_nick_name() + " If you survive you earn your freedom\r\n");
+		}
+	}
 	std:: cout << "nick accepted"<<std::endl;
 }
 
@@ -196,37 +216,41 @@ void	Server::user(std::string param, Client &c)
 	std::string	real_name;
 
 	user_name = get_token(param);
+	std::cout << "user name : " << user_name << std::endl;
 	zero = get_token(param);
 	asterisk = get_token(param);
 	real_name = get_token(param);
-	if (c.get_nick_name().empty())
-		return;
-	if (user_name.empty() || zero.empty() || asterisk.empty())
+	std::cout << "real name : " << real_name << std::endl;
+	if (user_name.empty() || zero.empty() || asterisk.empty() || real_name.empty())
 	{
-		reply(c, ERR_NEEDMOREPARAMS(c.get_nick_name(), c.get_hostname()));
+		reply(c, ":irc.bmeek.chat 461 * USER :Not enough parameters\r\n");
 		return;
 	} 
-	if (c.get_status())
+	if (c.is_athantificated())
 	{
-		reply(c, ERR_ALREADYREGISTERED(c.get_nick_name(), c.get_hostname()));
+		reply(c, ":irc.bmeek.chat 462 " + c.get_nick_name() + " :You may not reregister!\r\n");
 		return;
 	}
-	for  (size_t i = 0; i < user_name.size(); i++)
-	{
-		if (std::isalnum(user_name[i]) || user_name[i] == '_')
-			continue;
-		else
-		{
-			reply(c, ERR_ERRONEUSNICKNAME(c.get_nick_name(), c.get_hostname()));
-			return;
-		}
-	}
-	if (zero != "0" || asterisk != "*")
-		return ;
+	// for  (size_t i = 0; i < user_name.size(); i++)
+	// {
+	// 	if (std::isalnum(user_name[i]) || user_name[i] == '_')
+	// 		continue;
+	// 	else
+	// 	{
+	// 		reply(c, ERR_ERRONEUSNICKNAME(c.get_nick_name(), c.get_hostname()));
+	// 		return;
+	// 	}
+	// }
+	// if (zero != "0" || asterisk != "*")
+	// 	return ;
 	c.set_user_name(user_name);
 	c.set_real_name(real_name);
-	c.set_status(true);
-	reply(c, RPL_WELCOME(c.get_nick_name(), c.get_hostname()));
+	c.set_user_status(true);
+	if (c.is_athantificated())
+	{
+		reply(c, ":irc.bmeek.chat 001 " + c.get_nick_name() + " Welcome to the gulag\r\n");
+		reply(c, ":irc.bmeek.chat 002 " + c.get_nick_name() + " If you survive you earn your freedom\r\n");
+	}
 	std::cout << "username accepted" << std::endl;
 }
 
@@ -238,11 +262,18 @@ void	Server::privmsg(std::string param, Client &c)
 	std::map<std::string, int> targets;
 	s_targets = get_token(param);
 	s_msg = get_token(param);
-	if (s_targets.empty() || s_msg.empty())
+	if (s_targets.empty())
 	{
 		std::cout << "target is empty" << std::endl;
 		// reply with  ERR_NEEDMOREPARAMS (461)
-		reply(c, ERR_NEEDMOREPARAMS(c.get_nick_name(), c.get_hostname()));
+		reply(c, ":irc.bmeek.chat 411 " + c.get_nick_name() + " :No recipient given (PRIVMSG)\r\n");
+		// reply(c, ERR_NEEDMOREPARAMS(c.get_nick_name(), c.get_hostname()));
+		return;
+	}
+	if (s_msg.empty())
+	{
+		std::cout << "msg is empty" << std::endl;
+		reply(c, ":bmeek.chat 412 " + c.get_nick_name() + ":No text to send\r\n");
 		return;
 	}
 	std::stringstream str_stream(s_targets);
@@ -265,20 +296,27 @@ void	Server::privmsg(std::string param, Client &c)
 				Channel ch = get_channel_by_name(itr->first);
 				if (ch.is_member(c))
 				{
-					ch.broadcast(RPL_PRIVMSG(c.get_nick_name(), ch.get_name(), s_msg));
+					Channel ch = get_channel_by_name(itr->first);
+					std::map<Client, int> m = ch.get_members();
+					std::map<Client, int>::iterator m_itr = m.begin();
+					while (m_itr != m.end())
+					{
+						if (m_itr->first.get_nick_name() != c.get_nick_name())
+							reply(m_itr->first, ":" + c.get_nick_name() + "!~" + c.get_user_name() + "@" + c.get_hostname() + " PRIVMSG #" + itr->first + " :" + s_msg + "\r\n");
+						m_itr++;
+					}
 					return;
 				}
 				else
 				{
-					reply(c, ERR_CANNOTSENDTOCHAN(c.get_nick_name(), ch.get_name()));
+					reply(c, ":irc.bmeek.chat 404 " + c.get_nick_name() + " #" + itr->first + " :Cannot send to nick/channel\r\n");
 					return;
 				}
 			}
 			else
 			{
-				reply(c, ERR_NOSUCHCHANNEL(c.get_hostname(), itr->first, c.get_nick_name()));
+				reply(c, ":bmeek.chat 401 " + c.get_nick_name() + " " + itr->first + " :No such nick/channel\r\n");
 				return;
-				// reply with ERR_NOSUCHCHANNEL (403)
 			}
 		}
 		else // target is a client
@@ -286,14 +324,14 @@ void	Server::privmsg(std::string param, Client &c)
 			if (client_exists(itr->first))
 			{
 				Client c2 = get_client_by_name(itr->first);
-				// reply(c2, RPL_PRIVMSG(get_source(c.get_nick_name(), c.get_real_name(), c.get_hostname()), itr->first, s_msg));
-				reply(c2, RPL_PRIVMSG(c.get_nick_name() , itr->first, s_msg));
+				reply(c2, ":" + c.get_nick_name() + "!~" + c.get_user_name() + "@127.0.0.1" + " PRIVMSG " + c2.get_nick_name() + " :" + s_msg + "\r\n");
+				// reply(c2, RPL_PRIVMSG(get_source(c.get_nick_name(), c.get_real_name(), c.get_hostname()) , itr->first, s_msg));
 				return;
 			}
 			else
 			{
-				reply(c, ERR_NOSUCHNICK(c.get_hostname(), itr->first, "what"));
-				return;
+				reply(c, ":bmeek.chat 401 " + c.get_nick_name() + " " + itr->first + " :No such nick/channel\r\n");
+				return ;
 			}
 		}
 	}
@@ -312,7 +350,7 @@ void	Server::join(std::string param, Client & c)
 	if (s_channels.empty() || s_channels == "#")
 	{
 		std::cout << "no channel name is being provided" << std::endl;
-		reply(c, ERR_NEEDMOREPARAMS(c.get_nick_name(), c.get_hostname()));
+		reply(c, ":irc.bmeek.chat 461 " + c.get_nick_name() + " JOIN :Not enough parameters\r\n");
 		return;
 	}
 	std::stringstream channels_stream(s_channels);
@@ -333,9 +371,33 @@ void	Server::join(std::string param, Client & c)
 		{
 			std::cout << "channel exists :" << channel << std::endl;
 			Channel ch = get_channel_by_name(channel);
-			ch.add_member(c, key);
-			reply(c, RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1"));
-			reply(c, RPL_TOPICDISPLAY(c.get_hostname(), c.get_nick_name(), channel, ch.get_topic()));
+			try
+			{
+				ch.add_member(c, key);
+			}
+			catch(const int & i)
+			{
+				switch (i)
+				{
+					case 1 :
+						break;
+					case 2 :
+						reply(c, ":irc.bmeek.chat 471 " + c.get_nick_name() + " #" + channel + " :Cannot join channel (+l) - channel is full, try again later\r\n");
+						break;
+					case 3 :
+						reply(c, ":irc.bmeek.chat 471 " + c.get_nick_name() + " #" + channel + " :Cannot join channel (+i) - you must be invited\r\n");
+						break;
+					case 4 :
+						reply(c, ":irc.bmeek.chat 475 " + c.get_nick_name() + " #" + channel + " :Cannot join channel (+k) - bad key\r\n");
+				}
+				return;
+			}
+			// reply with RPL_NAMREPLYY (source, channel, users) // users is all channel users separated by ' '
+			ch.broadcast(c.get_nick_name() + "!~" + c.get_user_name() + "@" + "127.0.0.1" + " JOIN #" +channel + "\r\n");
+			reply(c, ":irc.bmeel.chat 353 " + c.get_nick_name() + " @ " + "#" + channel + ":" + ch.get_list_of_names() +"\r\n");
+			reply(c, ":irc.bmeel.chat 366 " +c.get_nick_name() + " #" + channel + " :End of /NAMES list.\r\n");
+			// reply(c, RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1"));
+			// reply(c, RPL_TOPICDISPLAY(c.get_hostname(), c.get_nick_name(), channel, ch.get_topic()));
 		}
 		else
 		{
@@ -345,10 +407,10 @@ void	Server::join(std::string param, Client & c)
 				ch.enable_mode(CH_KEY);
 			_channels.push_back(ch);
 			ch.add_operator(c);
-			// std::cout << RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1") << std::endl;
-			reply(c, RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1"));
-			reply(c, RPL_TOPICDISPLAY(c.get_hostname(), c.get_nick_name(), channel, ch.get_topic()));
-
+			reply(c, ":irc.bmeel.chat MODE #" + channel + " +Cnst\r\n");
+			reply(c, ":irc.bmeel.chat 353 " + c.get_nick_name() + " @ " + "#" + channel + ":" + ch.get_list_of_names() +"\r\n");
+			reply(c, ":irc.bmeel.chat 366 " +c.get_nick_name() + " #" + channel + " :End of /NAMES list.\r\n");
+			
 			// reply
 		}
 	}
@@ -669,3 +731,23 @@ std::string	get_source(std::string nick, std::string user, std::string host)
 	return nick + "!" + user + "@" + host;
 	//nick>!<user>@<host>
 }
+/*def count_multiprime(a, b):
+    def has_multiprime(n):
+        if n < 2: return False
+        div, pf = 2, set()
+        while n > 1:
+            while n % div == 0:
+                n //= div
+                pf.add(div)
+            div += 1
+            if div * div > n:
+                if n > 1: pf.add(n)
+                break
+        return len(pf) > 1
+    
+    return sum(has_multiprime(x) for x in range(a, b + 1))
+
+n = int(input())
+for _ in range(n):
+    a, b = map(int, input().split())
+    print(count_multiprime(a, b))*/

@@ -20,6 +20,9 @@
 
 #define RPL_PRIVMSG(source, target, message) ":" + source + " PRIVMSG " + target + " :" + message + "\r\n"
 
+#define RPL_JOINN(source, channel) ":" + source + " JOIN :" + channel + "\r\n"
+#define RPL_NAMREPLYY(source, channel, users) "353 " + source + " = " + channel + " :" + users + "\r\n"
+
 #define RPL_WELCOME(nick, hostname) ":" + hostname + " 001 " + nick + " :Welcome " + nick + " to the ft_irc network !\r\n"
 #define RPL_YOURHOST(nick, hostname) ":" + hostname + " 002 " + nick + " :Your host is " + hostname + " running version 1.0 !\r\n"
 #define RPL_CREATED(nick, hostname) ":" + hostname + " 003 " + nick + " :This server was created 2023-9-15 !\r\n"
@@ -106,7 +109,7 @@ class	Server
 		bool		client_exists(const std::string &);
 		Client		&get_client_by_name(const std::string &);
 		Client		&get_client_by_id(int sock_id);
-		void		reply(Client &, const std::string &) const;
+		void		reply(const Client &, const std::string &) const;
 		// commands
 		void		pass(std::string, Client &);
 		void		nick(std::string, Client &);
