@@ -40,28 +40,22 @@ void	Channel::add_member(Client &c, std::string passwd)
 	}
 	if ((_mode & CH_CLIENT_LIMIT) && _nbr_members >= _max_members)
 	{
-		//reply with ERR_CHANNELISFULL (471)
 		std::cout << "channel is full" << std::endl;
 		throw (2);
 	}
 	if ((_mode & CH_INVITE_ONLY) && find(_invited.begin(), _invited.end(), c) == _invited.end())
 	{
-		//reply with ERR_INVITEONLYCHAN (473)
 		std::cout << "user is not invited" << std::endl;
 		throw (3);
 	}
 	if ((_mode & CH_KEY) == CH_KEY && passwd != _passwd)
 	{
-		// reply with ERR_BADCHANNELKEY (475)
 		std::cout << "wrong key" << std::endl;
 		throw (4);
 	}
 	_members[c] = 0;
+	_nbr_members++;
 	std::cout << "memeber added succesfully" << std::endl;
-	// reply(c, RPL_JOIN(c.get_nick_name(), c.get_user_name(), channel, "127.0.0.1"));
-	// reply(c, RPL_TOPICDISPLAY(c.get_hostname(), c.get_nick_name(), channel, ch.get_topic()))
-	//no topic
-	//send reply
 }
 
 void	Channel::add_operator(Client &c)
@@ -73,6 +67,7 @@ void	Channel::add_operator(Client &c)
 		return;
 	}
 	_members[c] = 1;
+	_nbr_members++;
 }
 
 void	Channel::remove_member(Client & c)
@@ -150,15 +145,19 @@ const Client	&Channel::get_member_by_name(std::string &name)
 	throw ("Client not found");
 }
 
-void	Channel::broadcast(const std::string &msg)
+void	Channel::broadcast(const std::string &msg, std::string nick_name)
 {
 	std::map<Client, int>::iterator itr = _members.begin();
 	while (itr != _members.end())
 	{
-		ssize_t	count = send(itr->first.get_socket_fd(), msg.c_str(), strlen(msg.c_str()), 0);
-		if (count == -1)
+		if (nick_name != itr->first.get_nick_name())
 		{
-			std :: cout << "Error sending" << std::endl;
+			ssize_t	count = send(itr->first.get_socket_fd(), msg.c_str(), strlen(msg.c_str()), 0);
+			std::cout << "msg brodcasted to : " << itr->first.get_nick_name() << std::endl; 
+			if (count == -1)
+			{
+				std :: cout << "Error sending" << std::endl;
+			}
 		}
 		itr++;
 	}

@@ -48,7 +48,7 @@ class	Channel
 		const Client	&get_member_by_name(std::string &);
 		std::map <Client, int> get_members() const;
 
-		void	broadcast(const std::string &);
+		void	broadcast(const std::string &, std::string);
 		std::string	get_list_of_names();
 
 		bool				operator==(const Channel& cl) const;
