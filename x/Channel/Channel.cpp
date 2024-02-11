@@ -80,6 +80,14 @@ void	Channel::remove_member(Client & c)
 	}
 }
 
+
+void	Channel::remove_member_from_invited_list(Client &c)
+{
+	std::vector<Client>::iterator itr = find(_invited.begin(), _invited.end(), c);
+	if (itr != _invited.end())
+		_invited.erase(itr);
+}
+
 void	Channel::promote_member(Client &c)
 {
 	if (_members.find(c) != _members.end())

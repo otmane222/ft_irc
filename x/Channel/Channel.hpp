@@ -40,6 +40,7 @@ class	Channel
 		void	add_member(Client &, std::string);
 		void	add_operator(Client &);
 		void	remove_member(Client &);
+		void	remove_member_from_invited_list(Client &);
 		void	promote_member(Client &);
 		void	unpromote_member(Client &);
 		void	invite_member(Client &);
