@@ -12,6 +12,14 @@
 #define CH_KEY 4
 #define CH_PROTECTED_TOPIC 8
 
+// typedef struct s_modes
+// {
+// 	bool invite_only;
+// 	bool topic_set;
+// 	bool channel_key;
+
+// } t_modes;
+
 class	Channel
 {
 	public:
@@ -27,7 +35,7 @@ class	Channel
 		
 		//setters
 		void	set_name(std::string &);
-		void	set_passwd(std::string &);
+		void	set_passwd(std::string);
 		void	set_topic(std::string &);
 		void	set_nbr_members(size_t);
 		void	set_max_members(size_t);

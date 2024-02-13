@@ -19,7 +19,7 @@ size_t		Channel::get_max_members() const {return _max_members;}
 
 // setters
 void	Channel::set_name(std::string & name) {_name = name;}
-void	Channel::set_passwd(std::string & passwd) {_passwd = passwd;}
+void	Channel::set_passwd(std::string passwd) {_passwd = passwd;}
 void	Channel::set_topic(std::string & topic) {_topic = topic;}
 void	Channel::set_nbr_members(size_t nbr_members) {_nbr_members = nbr_members;}
 void	Channel::set_max_members(size_t max_members) {_max_members = max_members;}

@@ -18,6 +18,8 @@
 #include "../Channel/Channel.hpp"
 #include "../Client/Client.hpp"
 
+#define ERR_NOSUCHCHANNEL(hostname, channel, nick) ":" + hostname + " 403 " + nick + " " + channel + " :No such channel\r\n"
+
 class	Server
 {
 	public:

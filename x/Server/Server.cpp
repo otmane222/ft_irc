@@ -12,7 +12,7 @@ _port(port), _passwd(passwd)
 	_cmds["KICK"] = &Server::kick;
 	_cmds["INVITE"] = &Server::invite;
 	_cmds["TOPIC"] = &Server::topic;
-	// _cmds["MODE"] = &Server::mode;
+	_cmds["MODE"] = &Server::mode;
 	// _cmd["PART"] == &Server::part;
 	// _cmds["PING"] = &Server::;
 	// _cmds["PONG"] = &Server::;
@@ -56,7 +56,7 @@ Channel		&Server::get_channel_by_name(const std::string &name)
 			return (*itr);
 		itr++;
 	}
-	throw ("channel does not exists");
+	throw (name.c_str());
 }
 
 bool		Server::client_exists(Client &c)
@@ -611,22 +611,50 @@ void	Server::topic(std::string param, Client &c)
 
 void	Server::mode(std::string param, Client &c)
 {
-	std::string	target;
-	std::string	modestring;
-	std::string	made_arg;
-
-	target = get_token(param);
-	modestring = get_token(param);
-	if (modestring.empty())
+	try
 	{
-		//:osmium.libera.chat 324 bmeek #clcl +Cnst
-		// :osmium.libera.chat 329 bmeek #clcl 1707680144
-		//:osmium.libera.chat 461 bmeek MODE :Not enough parameters
-		reply(c, ":irc.bmeek.chat 461 " + c.get_nick_name() + " MODE :Not enough parameters\r\n");
+		/* code */
+	
+		std::string	target;
+		std::string	modestring;
+		std::string	made_arg;
+
+		target = get_token(param);
+		Channel&	ch = get_channel_by_name(target);
+		modestring = get_token(param);
+		if (modestring.empty())
+		{
+			//:osmium.libera.chat 324 bmeek #clcl +Cnst
+			// :osmium.libera.chat 329 bmeek #clcl 1707680144
+			//:osmium.libera.chat 461 bmeek MODE :Not enough parameters
+			reply(c, ":irc.bmeek.chat 461 " + c.get_nick_name() + " MODE :Not enough parameters\r\n");
+		}
+		else
+		{
+			if (modestring == "+i")
+				ch.enable_mode(CH_INVITE_ONLY);
+			else if (modestring == "-i")
+				ch.disable_mode(CH_INVITE_ONLY);
+			else if (modestring == "+k")
+			{
+				std::string pass = get_token(param);
+				if (!pass.empty())
+				{
+					ch.enable_mode(CH_KEY);
+					ch.set_passwd(pass);
+				}
+			}
+			else if (modestring == "-k")
+			{
+				ch.disable_mode(CH_KEY);
+				ch.set_passwd("");
+			}
+		}
 	}
-	else
+	catch(const char * s)
 	{
-
+		reply(c, ERR_NOSUCHCHANNEL(c.get_hostname(), s, c.get_nick_name()));
+		// std :: cout << s << std :: endl;
 	}
 	//:tungsten.libera.chat 472 dr * :is an unknown mode char to me
 	// :tungsten.libera.chat 461 dr MODE :Not enough parameters
@@ -735,7 +763,7 @@ void		Server::start()
 	pollfd Pollfd;
 
 	Pollfd.fd = _socket_fd;
-	Pollfd.events = 1;
+	Pollfd.events = POLLSTANDARD;
 	Pollfd.revents = 0;
 
 	pollfds.push_back(Pollfd);
