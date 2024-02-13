@@ -614,13 +614,18 @@ void	Server::mode(std::string param, Client &c)
 	try
 	{
 		/* code */
-	
 		std::string	target;
 		std::string	modestring;
 		std::string	made_arg;
 
 		target = get_token(param);
 		Channel&	ch = get_channel_by_name(target);
+		if (ch.is_member(c) != 1)
+		{
+			// reply (c, )
+			// ERR_CHANOPRIVSNEEDED
+			return ;
+		}
 		modestring = get_token(param);
 		if (modestring.empty())
 		{
@@ -648,6 +653,66 @@ void	Server::mode(std::string param, Client &c)
 			{
 				ch.disable_mode(CH_KEY);
 				ch.set_passwd("");
+			}
+			else if (modestring == "+o")
+			{
+				std::string nick = get_token(param);
+				if (!nick.empty())
+				{
+					try
+					{
+						Client& c2 = get_client_by_name(nick);
+						ch.promote_member(c2);
+					}
+					catch(const char * s)
+					{
+						std :: cout << s << std :: endl;
+						return ;
+					}
+				}
+
+			}
+			else if (modestring == "-o")
+			{
+				std::string nick = get_token(param);
+				if (!nick.empty())
+				{
+					try
+					{
+						Client& c2 = get_client_by_name(nick);
+						ch.unpromote_member(c2);
+					}
+					catch(const char * s)
+					{
+						std :: cout << s << std :: endl;
+						return ;
+					}
+				}
+			}
+			else if (modestring == "+l")
+			{
+				std::string num = get_token(param);
+				for (size_t i = 0; num[i]; i++)
+				{
+					if (!isdigit(num[i]))
+						return ;
+				}
+				size_t max = std :: atoi(num.c_str());
+				ch.set_max_members(max);
+				ch.enable_mode(CH_CLIENT_LIMIT);
+			}
+			else if (modestring == "-l")
+			{
+				ch.disable_mode(CH_CLIENT_LIMIT);
+				ch.set_max_members(0);
+			}
+			else if (modestring == "+t")
+			{
+				ch.enable_mode(CH_PROTECTED_TOPIC);
+			}
+			else if (modestring == "-t")
+			{
+				ch.disable_mode(CH_PROTECTED_TOPIC);
 			}
 		}
 	}
