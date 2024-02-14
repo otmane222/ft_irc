@@ -16,7 +16,7 @@ class	Client
 {
 	std::string line;
 	public:
-		Client(int = -1);
+		Client(int = -1, std::string hostname = "127.0.0.1");
 		~Client();
 
 		// geters

@@ -1,11 +1,10 @@
 #include "Client.hpp"
 
-Client::Client(int sock_fd):_sock_fd(sock_fd)
+Client::Client(int sock_fd, std::string hostname): _sock_fd(sock_fd), _hostname (hostname)
 {
 	_nick_name = "";
 	_user_name = "";
 	_real_name = "";
-	_hostname = "127.0.0.1";
 	_passwd = "";
 	_registred = 0;
 	_pass_valid = false;

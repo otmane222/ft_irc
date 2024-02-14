@@ -942,6 +942,8 @@ void		Server::start()
 					}
 					else
 					{
+						char* ip_address = inet_ntoa(clientaddr.sin_addr);
+
 						if (fcntl(_clientSocket, F_SETFL, O_NONBLOCK) == -1)
 							perror("fcntl");
 						std::cout << "New Connection Has Been Accepted, Client Socket: "<< _clientSocket - 3 << std::endl;
@@ -949,7 +951,7 @@ void		Server::start()
 						pollfds.push_back(Pollfd);
 
 
-						Client	a(_clientSocket);
+						Client	a(_clientSocket, ip_address);
 						_clients.push_back(a);
 					}
 					break ;

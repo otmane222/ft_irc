@@ -33,21 +33,39 @@ SocketManager::SocketManager(int port)
 		exit (1);
 	}
 
-	struct hostent* host;
-	if ((host = gethostbyname(hostname)) == NULL) {
-		std::cout << "Error getting hostent" << std::endl;
-		exit (1);
+	struct addrinfo hints, *result;
+
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	int status;
+	if ((status = getaddrinfo(hostname, NULL, &hints, &result)) != 0) {
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+		exit(EXIT_FAILURE);
 	}
 
-	char* ip_address = ç(*((struct in_addr*) host->h_addr_list[0]));
+	char* ip_address = NULL;
 
-	std :: cout << ip_address << std::endl;
+	void *addr;
+	if (result->ai_family == AF_INET)
+	{
+		addr = &((struct sockaddr_in *)result->ai_addr)->sin_addr;
+	}
+	else
+	{
+		addr = &((struct sockaddr_in6 *)result->ai_addr)->sin6_addr;
+	}
+	ip_address = inet_ntoa(*((struct in_addr*) addr));
 
-	in_addr_t	addr = inet_addr(ip_address);
+	freeaddrinfo(result);
 
+
+	in_addr_t	addrr;
+
+	addrr = inet_addr(ip_address);
+	serverAddr.sin_addr.s_addr = htonl(addrr);
 	serverAddr.sin_port = htons(port);
-	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_addr.s_addr = INADDR_ANY;
+	serverAddr.sin_family = AF_UNSPEC;
 
 	if (bind(serverSocket, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1)
 	{
