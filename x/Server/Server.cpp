@@ -786,7 +786,19 @@ void		Server::quit(std::string param, Client &c)
 	reply(c,":" + c.get_nick_name() + "!~" + c.get_user_name() + "@127.0.0.1" + " QUIT :Client Quit\r\n");
 	close(c.get_socket_fd());
 	// pollfds.erase(pollfds.begin() + i);
-	// _clients.erase(_clients.begin() + i - 1);
+	std::vector<Client>::iterator it = _clients.begin();
+	int i = 0;
+	for (; it != _clients.end(); it++)
+	{
+		if (_clients[i] == c)
+			break ;
+		i++;
+	}
+	if (it != _clients.end())
+	{
+		_clients.erase(_clients.begin() + i);
+		pollfds.erase(pollfds.begin() + i + 1);
+	}
 }
 // PART
 
@@ -886,7 +898,6 @@ void eraseSubstring2(std::string& str)
 
 void		Server::start()
 {
-	std::vector<pollfd>						pollfds;
 	int										_clientSocket;
 	struct sockaddr_in						clientaddr;
 	socklen_t								len = sizeof(clientaddr);

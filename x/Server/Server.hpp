@@ -68,6 +68,7 @@ class	Server
 		std::vector<Client>		_clients;
 		std::vector<Channel>	_channels;
 		std::map<std::string, void (Server::*)(std::string, Client&)> _cmds;
+		std::vector<pollfd>		pollfds;
 		// std::map<int, Client>		_clients;
 };
 

@@ -27,6 +27,24 @@ SocketManager::SocketManager(int port)
 		exit (1);
 	}
 
+	char hostname[256];
+	if (gethostname(hostname, sizeof(hostname)) == -1) {
+		std::cout << "Error getting hostname" << std::endl;
+		exit (1);
+	}
+
+	struct hostent* host;
+	if ((host = gethostbyname(hostname)) == NULL) {
+		std::cout << "Error getting hostent" << std::endl;
+		exit (1);
+	}
+
+	char* ip_address = ç(*((struct in_addr*) host->h_addr_list[0]));
+
+	std :: cout << ip_address << std::endl;
+
+	in_addr_t	addr = inet_addr(ip_address);
+
 	serverAddr.sin_port = htons(port);
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_addr.s_addr = INADDR_ANY;
