@@ -53,7 +53,10 @@ class	Server
 		void		invite(std::string, Client &);
 		void		topic(std::string, Client &);
 		void		mode(std::string, Client &);
-		void		part(std::string, Client &);
+		void		ping(std::string, Client &);
+		void		pong(std::string, Client &);
+		void		quit(std::string, Client &);
+		// void		part(std::string, Client &);
 
 		void		execute_cmd(std::string, Client &);
 

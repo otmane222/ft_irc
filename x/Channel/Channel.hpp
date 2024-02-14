@@ -11,6 +11,7 @@
 #define CH_INVITE_ONLY 2
 #define CH_KEY 4
 #define CH_PROTECTED_TOPIC 8
+#define	CH_OPERATOR_PRIV 16
 
 // typedef struct s_modes
 // {
@@ -32,6 +33,8 @@ class	Channel
 		std::string	get_topic() const;
 		size_t		get_nbr_members() const;
 		size_t		get_max_members() const;
+		bool		is_mode_enabled(mode_t) const;
+		std::string get_mode();
 		
 		//setters
 		void	set_name(std::string &);
@@ -50,13 +53,14 @@ class	Channel
 		void	remove_member(Client &);
 		void	remove_member_from_invited_list(Client &);
 		void	promote_member(Client &);
+		void	promote_member(std::string &);
 		void	unpromote_member(Client &);
+		void	unpromote_member(std::string &);
 		void	invite_member(Client &);
 		int		is_member(Client &); // -1 : not a memeber , 0 : simple user , 1 : operator
 		int		is_member(std::string &); // -1 : not a memeber , 0 : simple user , 1 : operator
 		const Client	&get_member_by_name(std::string &);
 		std::map <Client, int> get_members() const;
-
 		void	broadcast(const std::string &, std::string);
 		std::string	get_list_of_names();
 

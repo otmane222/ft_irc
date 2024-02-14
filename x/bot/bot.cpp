@@ -85,7 +85,7 @@ int	main(int ac, char **av)
 					// Then we can proceed the bot reponses
 					if (!message.empty())
 					botBehavior(message, botSocket, nick);
-				}
+			}
 		}
 	}
 }
