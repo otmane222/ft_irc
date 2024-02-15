@@ -1,6 +1,6 @@
 #include "SocketManager.hpp"
 
-SocketManager::SocketManager(int port)
+SocketManager::SocketManager(int port, bool is_server)
 {
 	struct sockaddr_in serverAddr;
 
@@ -21,7 +21,7 @@ SocketManager::SocketManager(int port)
 		exit(1);
 	} 
 
-	if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) == -1)
+	if (is_server && fcntl(serverSocket, F_SETFL, O_NONBLOCK) == -1)
 	{
 		perror("fcntl");
 		exit (1);
@@ -32,8 +32,6 @@ SocketManager::SocketManager(int port)
 		std::cout << "Error getting hostname" << std::endl;
 		exit (1);
 	}
-
-
 
 	struct addrinfo hints, *result;
 
@@ -72,16 +70,21 @@ SocketManager::SocketManager(int port)
 	serverAddr.sin_port = htons(port);
 	serverAddr.sin_family = AF_UNSPEC;
 
-	if (bind(serverSocket, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1)
+	if (is_server && bind(serverSocket, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1)
 	{
 		perror("bind");
 		exit(1);
 	}
 
-	if (listen(serverSocket, SOMAXCONN) == -1)
+	if (is_server && listen(serverSocket, SOMAXCONN) == -1)
 	{
 		perror("listen");
 		exit(1);
+	}
+	if (!is_server && connect(serverSocket, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1) 
+	{
+		std::cerr << "Error during connection" << std::endl;
+		return ;
 	}
 }
 

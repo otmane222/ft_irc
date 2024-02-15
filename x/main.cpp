@@ -15,7 +15,7 @@ int main(int ac, char **av)
 
 	// Create and initialize your IRC server logic here
 	// Initialize server socket, set it to non-blocking mode, and bind it to the specified port
-	SocketManager	socketManager(ircserv.get_port());
+	SocketManager	socketManager(ircserv.get_port(), 1);
 	ircserv.set_socket_fd(socketManager.getSocket());
 	try
 	{

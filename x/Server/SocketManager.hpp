@@ -14,7 +14,7 @@ class SocketManager
 	private:
 		int	serverSocket;
 	public:
-		SocketManager(int port);
+		SocketManager(int port, bool is_server);
 		int	getSocket();
 		~SocketManager();
 };

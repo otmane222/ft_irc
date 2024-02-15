@@ -9,6 +9,33 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <fstream>
+#include <random>
+
+
+class	ircBot
+{
+	public:
+		ircBot(int = 0, std::string = "", std::string = "");
+		~ircBot();
+
+		int		get_port() const;
+		int		get_botSocke() const;
+		std::string get_passwd() const;
+
+		void	set_passwd(std::string &);
+		void	set_port(int);
+		void	set_botSocke(int);
+
+		void		startBot();
+	private :
+		int						_botSocket;
+		int						_port;
+		std::string 			_passwd;
+		std::string 			_hostname;
+
+};
+
 
 std::string			retreiveMessageFromBuffer(char *buffer);
 std::string			retreiveNickFromBuffer(char *buffer);

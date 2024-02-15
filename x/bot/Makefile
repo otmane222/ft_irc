@@ -1,15 +1,15 @@
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+CXXFLAGS =# -Wall -Wextra -Werror -std=c++98
 
 NAME = ircbot
 
-SRC = $(wildcard *.cpp)
+SRC = $(wildcard *.cpp) ../Server/SocketManager.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
-HEADER = $(wildcard %.hpp)
+HEADER = $(wildcard %.hpp) ../Server/SocketManager.hpp
 
 all : $(NAME)
 
