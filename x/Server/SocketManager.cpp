@@ -33,6 +33,8 @@ SocketManager::SocketManager(int port)
 		exit (1);
 	}
 
+
+
 	struct addrinfo hints, *result;
 
 	memset(&hints, 0, sizeof hints);
@@ -56,6 +58,9 @@ SocketManager::SocketManager(int port)
 		addr = &((struct sockaddr_in6 *)result->ai_addr)->sin6_addr;
 	}
 	ip_address = inet_ntoa(*((struct in_addr*) addr));
+	std:: cout << hostname << std::endl;
+	std:: cout << ip_address << std::endl;
+	// exit (0);
 
 	freeaddrinfo(result);
 
@@ -63,7 +68,7 @@ SocketManager::SocketManager(int port)
 	in_addr_t	addrr;
 
 	addrr = inet_addr(ip_address);
-	serverAddr.sin_addr.s_addr = htonl(addrr);
+	serverAddr.sin_addr.s_addr = addrr;
 	serverAddr.sin_port = htons(port);
 	serverAddr.sin_family = AF_UNSPEC;
 
