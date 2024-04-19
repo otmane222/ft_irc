@@ -6,13 +6,15 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
-class socketManager
+class SocketManager
 {
 	private:
 		int	serverSocket;
 	public:
-		socketManager(int port);
+		SocketManager(int port, bool is_server);
 		int	getSocket();
-		~socketManager();
+		~SocketManager();
 };

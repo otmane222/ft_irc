@@ -1,37 +1,30 @@
+
+CXX = c++
+
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+
 NAME = ircserv
 
-SRC = 	main.cpp \
-		src/ircserver.cpp \
-		src/command.cpp \
-		src/socketManager.cpp \
-		src/client.cpp \
-		src/channel.cpp \
-		src/parse.cpp \
+SRC = $(wildcard Channel/*.cpp) $(wildcard Client/*.cpp) $(wildcard Server/*.cpp) main.cpp
 
-OBJS = $(SRC:.cpp=.o)
+OBJ = $(SRC:.cpp=.o)
+HEADER = $(wildcard Channel/*.hpp) $(wildcard Client/*.hpp) $(wildcard Server/*.hpp)
 
-FLAGS = -Werror -Wextra -Wall -std=c++98
+all : $(NAME) $(HEADER)
 
-CC = c++
+$(NAME) : $(OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-RM = rm -rf
+%.o : %.cpp $(HEADER)
+	$(CXX) $(CXXFLAGS) -c $< -o $@ 
+	
+clean :
+	rm -f $(OBJ)
 
-HEADERS = src/ircserver.hpp src/command.hpp src/socketManager.hpp src/client.hpp src/channel.hpp
+fclean : clean
+	rm -f $(NAME)
 
-all: $(NAME) $(OBJS) $(HEADERS)
+re : fclean all
 
-%.o: %.cpp $(HEADERS)
-	$(CC) -c $(FLAGS) $< -o $@
+.PHONY: all clean fclean re
 
-$(NAME): $(OBJS) $(HEADERS)
-	$(CC)  $(FLAGS) $(OBJS) -o $(NAME)
-
-clean:
-	$(RM) $(OBJS)
-
-fclean: clean
-	$(RM) $(NAME)
-
-re: fclean all
-
-.PHONY: clean
